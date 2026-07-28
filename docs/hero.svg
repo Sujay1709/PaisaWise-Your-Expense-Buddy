@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480" font-family="'Plus Jakarta Sans',system-ui,sans-serif">
+  <defs>
+    <linearGradient id="grain" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5c46b" stop-opacity=".22"/>
+      <stop offset="45%" stop-color="#fdfaf4" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#7fdcb4" stop-opacity=".18"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#2b3550" flood-opacity=".13"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="480" fill="#fdfaf4"/>
+  <rect width="1200" height="480" fill="url(#grain)"/>
+
+  <!-- nav -->
+  <g transform="translate(56,36)">
+    <rect width="30" height="30" rx="9" fill="#e8a838"/>
+    <text x="15" y="21" font-size="17" text-anchor="middle" fill="#22293d">₹</text>
+    <text x="42" y="21" font-size="19" font-weight="800" fill="#22293d">Paisa<tspan fill="#e8a838">Wise</tspan></text>
+  </g>
+  <g transform="translate(900,32)" font-size="13" fill="#6b7280">
+    <text x="0" y="22">Features</text>
+    <text x="78" y="22">FAQ</text>
+    <rect x="140" y="4" width="96" height="34" rx="9" fill="#22293d"/>
+    <text x="188" y="26" font-size="13" font-weight="600" fill="#fdfaf4" text-anchor="middle">Sign in</text>
+  </g>
+
+  <!-- left copy -->
+  <g transform="translate(56,120)">
+    <rect width="238" height="28" rx="14" fill="#ffffff" stroke="#eadfcc"/>
+    <text x="16" y="19" font-size="11" font-weight="700" letter-spacing="1.4" fill="#6b7280">FOR INDIAN COLLEGE STUDENTS</text>
+
+    <text y="96" font-size="66" font-weight="800" fill="#22293d" letter-spacing="-2">PAISA<tspan fill="#e8a838">WISE</tspan></text>
+    <text y="140" font-size="25" font-weight="700" fill="#22293d">Track chai to college fees — and actually save.</text>
+
+    <text y="178" font-size="15" fill="#6b7280">Type your spending the way you'd text a friend. PaisaWise turns it</text>
+    <text y="200" font-size="15" fill="#6b7280">into flashcards, category charts and savings tips in real rupees.</text>
+
+    <rect y="228" width="212" height="46" rx="11" fill="#22293d"/>
+    <text x="106" y="257" font-size="15" font-weight="700" fill="#fdfaf4" text-anchor="middle">Start tracking free →</text>
+    <rect x="228" y="228" width="176" height="46" rx="11" fill="#ffffff" stroke="#eadfcc"/>
+    <text x="316" y="257" font-size="15" font-weight="600" fill="#22293d" text-anchor="middle">See how it works</text>
+
+    <text y="300" font-size="12.5" fill="#8a8f9c">Free forever · No card required</text>
+  </g>
+
+  <!-- right demo card -->
+  <g transform="translate(690,104)" filter="url(#sh)">
+    <rect width="454" height="300" rx="22" fill="#ffffff" stroke="#eadfcc"/>
+
+    <rect x="18" y="18" width="418" height="72" rx="14" fill="#f7f1e6"/>
+    <text x="34" y="40" font-size="10" font-weight="700" letter-spacing="1.3" fill="#8a8f9c">YOU TYPE</text>
+    <g font-family="'JetBrains Mono',monospace" font-size="12.5" fill="#22293d">
+      <text x="34" y="62">340 swiggy, 30 auto, 50 coffee</text>
+      <text x="34" y="80">1.2k myntra shoes</text>
+    </g>
+
+    <text x="34" y="112" font-size="10" font-weight="700" letter-spacing="1.3" fill="#8a8f9c">PAISAWISE REPLIES</text>
+
+    <rect x="18" y="122" width="418" height="112" rx="14" fill="#fdfaf4" stroke="#eadfcc"/>
+    <g font-family="'JetBrains Mono',monospace" font-size="11">
+      <text x="34" y="144" fill="#22293d">┌───────────────────────────┐</text>
+      <text x="34" y="160" fill="#22293d">│ 🍕 FOOD                   │</text>
+      <text x="34" y="176" fill="#22293d">│ ₹340 · Swiggy             │</text>
+      <text x="34" y="192" fill="#22293d">│ dinner                    │</text>
+      <text x="34" y="208" fill="#22293d">└───────────────────────────┘</text>
+      <text x="34" y="226" fill="#8a8f9c">💰 Total: ₹1,620 · 4 expenses</text>
+    </g>
+
+    <rect x="18" y="244" width="418" height="40" rx="12" fill="#e4f7ee"/>
+    <text x="34" y="269" font-size="12.5" fill="#1f6b4f">💡 ₹390 on food this week — cook twice, save ₹120.</text>
+  </g>
+</svg>

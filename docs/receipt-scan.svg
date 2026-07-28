@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 440" width="1080" height="440" font-family="'Plus Jakarta Sans',system-ui,sans-serif">
+  <defs>
+    <filter id="r" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#2b3550" flood-opacity=".10"/>
+    </filter>
+  </defs>
+  <rect width="1080" height="440" fill="#fdfaf4"/>
+
+  <!-- step 1: the photo -->
+  <g transform="translate(40,44)" filter="url(#r)">
+    <rect width="272" height="352" rx="18" fill="#fff" stroke="#eadfcc"/>
+    <text x="20" y="32" font-size="11" font-weight="700" letter-spacing="1.2" fill="#8a8f9c">1 · SNAP THE BILL</text>
+
+    <rect x="52" y="48" width="168" height="266" rx="8" fill="#fbfaf7" stroke="#e5e0d5"/>
+    <g font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#5b6270">
+      <text x="136" y="76" font-size="11" font-weight="700" fill="#22293d" text-anchor="middle">CAFE COFFEE DAY</text>
+      <text x="136" y="92" text-anchor="middle">MG Road, Bengaluru</text>
+      <text x="68" y="116">— — — — — — — — — —</text>
+      <text x="68" y="140">Cappuccino</text><text x="204" y="140" text-anchor="end">180</text>
+      <text x="68" y="160">Veg Sandwich</text><text x="204" y="160" text-anchor="end">220</text>
+      <text x="68" y="180">Choco Muffin</text><text x="204" y="180" text-anchor="end">150</text>
+      <text x="68" y="204">— — — — — — — — — —</text>
+      <text x="68" y="224">Subtotal</text><text x="204" y="224" text-anchor="end">550</text>
+      <text x="68" y="242">GST 5%</text><text x="204" y="242" text-anchor="end">27</text>
+      <text x="68" y="266" font-weight="700" fill="#22293d">TOTAL</text>
+      <text x="204" y="266" font-weight="700" fill="#22293d" text-anchor="end">₹577</text>
+      <text x="136" y="292" text-anchor="middle">Paid · UPI</text>
+    </g>
+  </g>
+
+  <text x="336" y="228" font-size="26" fill="#c9c2b4">→</text>
+
+  <!-- step 2: model reads it -->
+  <g transform="translate(376,44)" filter="url(#r)">
+    <rect width="264" height="352" rx="18" fill="#fff" stroke="#eadfcc"/>
+    <text x="20" y="32" font-size="11" font-weight="700" letter-spacing="1.2" fill="#8a8f9c">2 · MODEL READS IT</text>
+
+    <rect x="20" y="48" width="224" height="26" rx="8" fill="#f2ece0"/>
+    <text x="132" y="66" font-size="11.5" font-weight="600" fill="#22293d" text-anchor="middle">⟳ Reading receipt…</text>
+
+    <g font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#4b5563">
+      <text x="24" y="102" fill="#8a8f9c">{</text>
+      <text x="34" y="118">"merchant": <tspan fill="#1f6b4f">"Cafe Coffee Day"</tspan>,</text>
+      <text x="34" y="134">"items": [</text>
+      <text x="44" y="150">{ 180, <tspan fill="#b3701a">"Food"</tspan>, "cappuccino" },</text>
+      <text x="44" y="166">{ 220, <tspan fill="#b3701a">"Food"</tspan>, "veg sandwich" },</text>
+      <text x="44" y="182">{ 150, <tspan fill="#b3701a">"Food"</tspan>, "choco muffin" }</text>
+      <text x="34" y="198">],</text>
+      <text x="34" y="214">"confidence": <tspan fill="#1f6b4f">"high"</tspan></text>
+      <text x="24" y="230" fill="#8a8f9c">}</text>
+    </g>
+
+    <rect x="20" y="250" width="224" height="82" rx="11" fill="#fdfaf4" stroke="#eadfcc"/>
+    <text x="34" y="272" font-size="10" font-weight="700" fill="#8a8f9c">TAX &amp; SUBTOTAL SKIPPED</text>
+    <text x="34" y="292" font-size="10.5" fill="#4b5563">GST and subtotal lines are</text>
+    <text x="34" y="308" font-size="10.5" fill="#4b5563">ignored — only real items</text>
+    <text x="34" y="324" font-size="10.5" fill="#4b5563">become expenses.</text>
+  </g>
+
+  <text x="664" y="228" font-size="26" fill="#c9c2b4">→</text>
+
+  <!-- step 3: confirm -->
+  <g transform="translate(704,44)" filter="url(#r)">
+    <rect width="336" height="352" rx="18" fill="#fff" stroke="#eadfcc"/>
+    <text x="22" y="32" font-size="11" font-weight="700" letter-spacing="1.2" fill="#8a8f9c">3 · YOU CONFIRM</text>
+    <text x="22" y="52" font-size="12" font-weight="700" fill="#22293d">Check before saving</text>
+    <text x="22" y="70" font-size="10.5" fill="#8a8f9c">Edit anything that looks wrong.</text>
+
+    <g>
+      <rect x="22" y="84" width="292" height="52" rx="11" fill="#fdfaf4" stroke="#eadfcc"/>
+      <text x="36" y="106" font-size="12">🍕</text>
+      <rect x="56" y="92" width="62" height="22" rx="6" fill="#fff" stroke="#eadfcc"/>
+      <text x="87" y="107" font-size="11" font-weight="600" fill="#22293d" text-anchor="middle">180</text>
+      <rect x="126" y="92" width="62" height="22" rx="6" fill="#fff" stroke="#eadfcc"/>
+      <text x="157" y="107" font-size="10" fill="#22293d" text-anchor="middle">Food ▾</text>
+      <text x="298" y="107" font-size="12" fill="#a8adb8">🗑</text>
+      <text x="36" y="128" font-size="10.5" fill="#6b7280">cappuccino</text>
+    </g>
+    <g>
+      <rect x="22" y="144" width="292" height="52" rx="11" fill="#fdfaf4" stroke="#eadfcc"/>
+      <text x="36" y="166" font-size="12">🍕</text>
+      <rect x="56" y="152" width="62" height="22" rx="6" fill="#fff" stroke="#eadfcc"/>
+      <text x="87" y="167" font-size="11" font-weight="600" fill="#22293d" text-anchor="middle">220</text>
+      <rect x="126" y="152" width="62" height="22" rx="6" fill="#fff" stroke="#eadfcc"/>
+      <text x="157" y="167" font-size="10" fill="#22293d" text-anchor="middle">Food ▾</text>
+      <text x="298" y="167" font-size="12" fill="#a8adb8">🗑</text>
+      <text x="36" y="188" font-size="10.5" fill="#6b7280">veg sandwich</text>
+    </g>
+    <g>
+      <rect x="22" y="204" width="292" height="52" rx="11" fill="#fdfaf4" stroke="#eadfcc"/>
+      <text x="36" y="226" font-size="12">🍕</text>
+      <rect x="56" y="212" width="62" height="22" rx="6" fill="#fff" stroke="#eadfcc"/>
+      <text x="87" y="227" font-size="11" font-weight="600" fill="#22293d" text-anchor="middle">150</text>
+      <rect x="126" y="212" width="62" height="22" rx="6" fill="#fff" stroke="#eadfcc"/>
+      <text x="157" y="227" font-size="10" fill="#22293d" text-anchor="middle">Food ▾</text>
+      <text x="298" y="227" font-size="12" fill="#a8adb8">🗑</text>
+      <text x="36" y="248" font-size="10.5" fill="#6b7280">choco muffin</text>
+    </g>
+
+    <line x1="22" y1="274" x2="314" y2="274" stroke="#eadfcc"/>
+    <text x="22" y="298" font-size="11.5" fill="#8a8f9c">Total</text>
+    <text x="76" y="298" font-size="14" font-weight="800" fill="#22293d">₹550</text>
+    <rect x="150" y="282" width="70" height="30" rx="9" fill="#fff" stroke="#eadfcc"/>
+    <text x="185" y="302" font-size="11.5" fill="#6b7280" text-anchor="middle">Cancel</text>
+    <rect x="228" y="282" width="86" height="30" rx="9" fill="#22293d"/>
+    <text x="271" y="302" font-size="11.5" font-weight="700" fill="#fdfaf4" text-anchor="middle">✓ Add 3</text>
+  </g>
+</svg>

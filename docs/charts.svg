@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 400" width="1080" height="400" font-family="'Plus Jakarta Sans',system-ui,sans-serif">
+  <defs>
+    <filter id="c" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#2b3550" flood-opacity=".10"/>
+    </filter>
+  </defs>
+  <rect width="1080" height="400" fill="#fdfaf4"/>
+
+  <!-- BAR -->
+  <g transform="translate(40,32)" filter="url(#c)">
+    <rect width="470" height="336" rx="18" fill="#fff" stroke="#eadfcc"/>
+    <text x="26" y="36" font-size="11" font-weight="700" letter-spacing="1.3" fill="#8a8f9c">SPEND BY CATEGORY</text>
+    <rect x="26" y="50" width="52" height="24" rx="7" fill="#22293d"/>
+    <text x="52" y="66" font-size="10.5" font-weight="600" fill="#fdfaf4" text-anchor="middle">Bar</text>
+    <rect x="84" y="50" width="52" height="24" rx="7" fill="#fff" stroke="#eadfcc"/>
+    <text x="110" y="66" font-size="10.5" font-weight="600" fill="#8a8f9c" text-anchor="middle">Pie</text>
+
+    <g transform="translate(26,96)" font-size="11.5">
+      <text x="0" y="14" fill="#4b5563">Shopping</text>
+      <rect x="76" y="1" width="330" height="19" rx="6" fill="#e8a838"/>
+      <text x="414" y="15" fill="#6b7280" font-size="10.5">₹1,500</text>
+
+      <text x="0" y="49" fill="#4b5563">Bills</text>
+      <rect x="76" y="36" width="110" height="19" rx="6" fill="#4ade80"/>
+      <text x="194" y="50" fill="#6b7280" font-size="10.5">₹500</text>
+
+      <text x="0" y="84" fill="#4b5563">Food</text>
+      <rect x="76" y="71" width="86" height="19" rx="6" fill="#6366f1"/>
+      <text x="170" y="85" fill="#6b7280" font-size="10.5">₹390</text>
+
+      <text x="0" y="119" fill="#4b5563">Travel</text>
+      <rect x="76" y="106" width="18" height="19" rx="6" fill="#f87171"/>
+      <text x="102" y="120" fill="#6b7280" font-size="10.5">₹80</text>
+
+      <text x="0" y="154" fill="#4b5563">Education</text>
+      <rect x="76" y="141" width="13" height="19" rx="6" fill="#a78bfa"/>
+      <text x="97" y="155" fill="#6b7280" font-size="10.5">₹60</text>
+    </g>
+
+    <line x1="26" y1="286" x2="444" y2="286" stroke="#eadfcc"/>
+    <text x="26" y="310" font-size="12.5" fill="#6b7280">Total spent</text>
+    <text x="444" y="310" font-size="14" font-weight="800" fill="#22293d" text-anchor="end">₹2,530</text>
+  </g>
+
+  <!-- PIE -->
+  <g transform="translate(570,32)" filter="url(#c)">
+    <rect width="470" height="336" rx="18" fill="#fff" stroke="#eadfcc"/>
+    <text x="26" y="36" font-size="11" font-weight="700" letter-spacing="1.3" fill="#8a8f9c">SHARE OF SPEND</text>
+    <rect x="26" y="50" width="52" height="24" rx="7" fill="#fff" stroke="#eadfcc"/>
+    <text x="52" y="66" font-size="10.5" font-weight="600" fill="#8a8f9c" text-anchor="middle">Bar</text>
+    <rect x="84" y="50" width="52" height="24" rx="7" fill="#22293d"/>
+    <text x="110" y="66" font-size="10.5" font-weight="600" fill="#fdfaf4" text-anchor="middle">Pie</text>
+
+    <!-- donut: 59.3% / 19.8% / 15.4% / 3.2% / 2.4% of 2530 -->
+    <g transform="translate(160,196)">
+      <circle r="86" fill="none" stroke="#e8a838" stroke-width="42"
+              stroke-dasharray="320.4 220.0" transform="rotate(-90)"/>
+      <circle r="86" fill="none" stroke="#4ade80" stroke-width="42"
+              stroke-dasharray="107.0 433.4" transform="rotate(123.5)"/>
+      <circle r="86" fill="none" stroke="#6366f1" stroke-width="42"
+              stroke-dasharray="83.2 457.2" transform="rotate(194.7)"/>
+      <circle r="86" fill="none" stroke="#f87171" stroke-width="42"
+              stroke-dasharray="17.3 523.1" transform="rotate(250.1)"/>
+      <circle r="86" fill="none" stroke="#a78bfa" stroke-width="42"
+              stroke-dasharray="13.0 527.4" transform="rotate(261.6)"/>
+      <text y="-4" font-size="21" font-weight="800" fill="#22293d" text-anchor="middle">₹2,530</text>
+      <text y="16" font-size="11" fill="#8a8f9c" text-anchor="middle">this month</text>
+    </g>
+
+    <g transform="translate(300,120)" font-size="12">
+      <circle cx="6" cy="-4" r="5" fill="#e8a838"/><text x="20" y="0" fill="#4b5563">Shopping</text><text x="140" y="0" fill="#22293d" font-weight="600" text-anchor="end">59%</text>
+      <circle cx="6" cy="30" r="5" fill="#4ade80"/><text x="20" y="34" fill="#4b5563">Bills</text><text x="140" y="34" fill="#22293d" font-weight="600" text-anchor="end">20%</text>
+      <circle cx="6" cy="64" r="5" fill="#6366f1"/><text x="20" y="68" fill="#4b5563">Food</text><text x="140" y="68" fill="#22293d" font-weight="600" text-anchor="end">15%</text>
+      <circle cx="6" cy="98" r="5" fill="#f87171"/><text x="20" y="102" fill="#4b5563">Travel</text><text x="140" y="102" fill="#22293d" font-weight="600" text-anchor="end">3%</text>
+      <circle cx="6" cy="132" r="5" fill="#a78bfa"/><text x="20" y="136" fill="#4b5563">Education</text><text x="140" y="136" fill="#22293d" font-weight="600" text-anchor="end">2%</text>
+    </g>
+  </g>
+</svg>
