@@ -97,19 +97,14 @@ export function getPool(): Pool {
 }
 
 /** Runs a query using the shared pool. */
-export async function query<T = unknown>(
-  text: string,
-  params: unknown[] = [],
-): Promise<T[]> {
+export async function query<T = unknown>(text: string, params: unknown[] = []): Promise<T[]> {
   await ensureMigrated();
   const result = await getPool().query(text, params as never[]);
   return result.rows as T[];
 }
 
 /** Runs several statements inside a single transaction. */
-export async function transaction<T>(
-  fn: (client: PoolClient) => Promise<T>,
-): Promise<T> {
+export async function transaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
   await ensureMigrated();
   const client = await getPool().connect();
   try {

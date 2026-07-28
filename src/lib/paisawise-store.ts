@@ -65,17 +65,13 @@ export function parseLedgerEntries(text: string): Omit<LedgerEntry, "ts">[] {
         if (!item || typeof item !== "object") continue;
         const entry = item as Record<string, unknown>;
         const amount =
-          typeof entry.amount === "number" && Number.isFinite(entry.amount)
-            ? entry.amount
-            : 0;
+          typeof entry.amount === "number" && Number.isFinite(entry.amount) ? entry.amount : 0;
         if (amount <= 0) continue;
         out.push({
           amount,
           category: isCategory(entry.category) ? entry.category : "Other",
           merchant:
-            typeof entry.merchant === "string" && entry.merchant.trim()
-              ? entry.merchant
-              : null,
+            typeof entry.merchant === "string" && entry.merchant.trim() ? entry.merchant : null,
           note: typeof entry.note === "string" ? entry.note : "",
           type: entry.type === "income" ? "income" : "expense",
         });

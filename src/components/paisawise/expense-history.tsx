@@ -3,13 +3,13 @@ import { Check, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { deleteExpense, listExpenses, updateExpense, type ExpenseEntry } from "@/lib/api";
 import {
-  deleteExpense,
-  listExpenses,
-  updateExpense,
-  type ExpenseEntry,
-} from "@/lib/api";
-import { CATEGORY_EMOJI, formatRupees, PW_CATEGORIES, type PwCategory } from "@/lib/paisawise-store";
+  CATEGORY_EMOJI,
+  formatRupees,
+  PW_CATEGORIES,
+  type PwCategory,
+} from "@/lib/paisawise-store";
 
 function emojiFor(category: string) {
   return CATEGORY_EMOJI[category as PwCategory] ?? "📦";
@@ -89,9 +89,7 @@ export function ExpenseHistory({ onChanged }: { onChanged: () => void }) {
         toast.error(result.error);
         return;
       }
-      setEntries((current) =>
-        current.map((e) => (e.id === id ? { ...e, ...patch } : e)),
-      );
+      setEntries((current) => current.map((e) => (e.id === id ? { ...e, ...patch } : e)));
       setEditingId(null);
       onChanged();
       toast.success("Updated.");

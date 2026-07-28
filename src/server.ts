@@ -17,9 +17,7 @@ if (process.env.DATABASE_URL) {
   // Hourly sweep so the sessions table stays small.
   const sweep = setInterval(
     () => {
-      purgeExpiredSessions().catch((error) =>
-        console.error("[db] session purge failed", error),
-      );
+      purgeExpiredSessions().catch((error) => console.error("[db] session purge failed", error));
     },
     60 * 60 * 1000,
   );

@@ -10,7 +10,7 @@
  * The map is swept periodically so it cannot grow without bound.
  */
 
-type Bucket = { hits: number[]; };
+type Bucket = { hits: number[] };
 
 const buckets = new Map<string, Bucket>();
 const MAX_KEYS = 50_000;
@@ -32,11 +32,7 @@ export type RateLimitResult = {
   retryAfterSeconds: number;
 };
 
-export function rateLimit(
-  key: string,
-  limit: number,
-  windowMs: number,
-): RateLimitResult {
+export function rateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
   const now = Date.now();
   sweep(now, windowMs);
 

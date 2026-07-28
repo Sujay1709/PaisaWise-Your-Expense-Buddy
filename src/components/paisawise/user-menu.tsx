@@ -2,11 +2,7 @@ import { useCallback, useState } from "react";
 import { LogOut, Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  changePassword,
-  updateProfile,
-  type AuthUser,
-} from "@/lib/api";
+import { changePassword, updateProfile, type AuthUser } from "@/lib/api";
 
 export function UserMenu({
   user,
@@ -60,7 +56,10 @@ export function UserMenu({
 
               <button
                 type="button"
-                onClick={() => { setOpen(false); setShowSettings(true); }}
+                onClick={() => {
+                  setOpen(false);
+                  setShowSettings(true);
+                }}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
               >
                 <Settings className="size-4" />
@@ -69,7 +68,10 @@ export function UserMenu({
 
               <button
                 type="button"
-                onClick={() => { setOpen(false); onSignOut(); }}
+                onClick={() => {
+                  setOpen(false);
+                  onSignOut();
+                }}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
               >
                 <LogOut className="size-4" />
@@ -251,9 +253,7 @@ function ProfileSettings({
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-foreground">
-              New password
-            </label>
+            <label className="mb-1 block text-sm font-medium text-foreground">New password</label>
             <input
               type="password"
               value={newPw}

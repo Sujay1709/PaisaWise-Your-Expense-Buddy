@@ -1,69 +1,112 @@
-# Commit & deploy — v3.2.0
+# Ship it — cleanup, push, deploy
 
-## 1. Clean up test artifacts
+## 1. Close the Neon PR
+
+Go to [PR #2](https://github.com/Sujay1709/PaisaWise-Your-Expense-Buddy/pull/2)
+and click **Close pull request**.
+
+It creates a throwaway Neon database branch per PR — useful for a team, not for
+a solo project. It also would never have run: the file is at
+`.github/workflows.yml`, but GitHub only reads workflows inside the
+`.github/workflows/` **directory**. And without `NEON_API_KEY` and
+`NEON_PROJECT_ID` set, every future PR would show a red ❌.
+
+A working lint/typecheck/build workflow has been added instead.
+
+## 2. Clean up and push
 
 ```sh
 cd /Users/sujaygopal/paisa-savvy-student-main
-rm -rf dist dist2 dist3 dist4 dist5
-rm -f sqltest.mjs sqltest2.mjs sqltest3.mjs iptest.mjs
-```
 
-## 2. Commit
+# Remove my test scripts (sslcheck.mjs is tracked, the rest are not)
+git rm --cached sslcheck.mjs 2>/dev/null
+rm -f sslcheck.mjs sqltest.mjs sqltest2.mjs sqltest3.mjs iptest.mjs
+rm -rf dist dist2 dist3 dist4 dist5 dist6
 
-```sh
 git add -A
-git commit -m "Add freemium tiers and fix three security bugs
+git commit -m "Add CI workflow and format source to Prettier config
 
-Security:
-- Rate limiter read the leftmost X-Forwarded-For entry, which is
-  client-controlled; an attacker could rotate a fake IP per request and
-  bypass login brute-force protection. Now reads from the right by
-  TRUSTED_PROXY_HOPS.
-- TanStack's CSRF middleware only covers server functions, leaving every
-  REST route protected by SameSite alone. Added a Sec-Fetch-Site check
-  with Origin/Host fallback to all state-changing methods.
-- Database TLS was encrypted but unauthenticated. Now verifies against
-  the public CA store on Neon/Supabase, supports DATABASE_CA_CERT, and
-  warns loudly when it must fall back.
-
-Freemium:
-- Free (50 expenses/mo, 5 AI msgs/day, 3 scans/mo) and Pro (unlimited)
-- usage_events table, quota enforcement returning HTTP 402
-- Usage meter UI; /api/billing for plans, usage and plan switching
-- No payment provider: plan switching is a demo toggle behind
-  ALLOW_DEMO_UPGRADE
-
-Deployment:
-- render.yaml for free Render + Neon hosting
-
-Verified: 14 SQL assertions against a real Postgres engine, 6 IP-spoofing
-scenarios, 5 CSRF scenarios over HTTP, clean typecheck, successful build."
+- .github/workflows/ci.yml runs lint, typecheck and build on every push
+  and PR. Replaces Neon's PR-branch workflow, which sat at
+  .github/workflows.yml (a file, not the required directory) and would
+  never have run.
+- Formatted the source tree: 309 Prettier errors, all from code added in
+  3.0-3.2. Lint is now clean so CI is green on the first run.
+- Added a typecheck npm script.
+- Removed test scripts from version control."
 
 git push origin main
 ```
 
-## 3. Deploy
+Check the **Actions** tab — the CI run should go green. (Verified locally:
+0 lint errors, typecheck clean, build succeeds.)
 
-Follow **[DEPLOYMENT.md](./DEPLOYMENT.md)**. Short version:
+## 3. Deploy to Render
 
-1. **Neon** → create project → copy connection string
-2. **Render** → New Web Service → connect repo (reads `render.yaml`)
-3. Set `DATABASE_URL` and `AI_API_KEY` in the Render dashboard
-4. Deploy, watch for `[db] schema ready`
+1. <https://render.com> → sign up with GitHub
+2. **New → Web Service** → select `PaisaWise-Your-Expense-Buddy`
+3. Render detects `render.yaml`. Confirm:
+   - Runtime **Node**, Plan **Free**, Region **Singapore**
+   - Build `npm ci && npm run build`, Start `npm run start`
+   - Health check `/api/health`
+4. Add the two secrets under **Environment** (everything else comes from
+   `render.yaml`):
 
-## 4. Update the demo link
+   | Key | Value |
+   |---|---|
+   | `DATABASE_URL` | your Neon connection string — the same one in your local `.env` |
+   | `AI_API_KEY` | your Gemini key |
 
-`render.yaml` names the service `paisawise`, so the URL will be
-`https://paisawise.onrender.com` unless Render appends a suffix for uniqueness.
-Check the real URL in the dashboard and fix line 11 of `README.md` if it differs.
+5. **Create Web Service**
+
+Watch the deploy log for:
+
+```
+[db] schema ready
+[server] PaisaWise listening on http://0.0.0.0:10000
+```
+
+Then the health check turns green and the service goes Live.
+
+### If the name is taken
+
+`render.yaml` requests the service name `paisawise`, which gives
+`paisawise.onrender.com`. That name is global across Render — if it is taken,
+Render will assign something like `paisawise-a1b2`. Whatever URL you get, use it
+in the next step.
+
+## 4. Point everything at the live URL
+
+Once you have the real URL:
+
+```sh
+# Replace with your actual Render URL
+sed -i '' 's|https://paisawise.onrender.com|https://YOUR-URL.onrender.com|' README.md
+git commit -am "Update live demo link" && git push
+```
+
+Then fix the repo's **About** field — it still points at Lovable
+(`preview--paisa-savvy-student.lovable.app`), which is the last visible trace of
+it. Click the ⚙️ beside "About" on the repo homepage and set the website to your
+Render URL.
 
 ## 5. Smoke test the live site
 
-- [ ] Sign up works
-- [ ] `340 swiggy, 30 auto, 50 coffee` logs three expenses (₹420 total)
-- [ ] Charts render; bar/pie toggle works
-- [ ] History tab lists expenses; edit and delete work
-- [ ] Usage meter shows 3/50 expenses, 1/5 AI messages
+- [ ] Sign up works (8+ character password)
+- [ ] `340 swiggy, 30 auto, 50 coffee` → three expenses, ₹420 total
+- [ ] Bar ↔ Pie toggle works; money-leak warning appears
+- [ ] Usage meter reads 3/50 expenses, 1/5 AI messages
+- [ ] History tab: edit an amount, delete a row
 - [ ] Receipt scan reads a photo and asks for confirmation
-- [ ] "Upgrade to Pro" flips limits to Unlimited
-- [ ] Sign out, sign back in, data is still there
+- [ ] Upgrade to Pro → limits show Unlimited
+- [ ] Sign out, sign back in → data persists
+- [ ] Open in a private window → cannot see the first account's data
+
+The last one matters most: it proves per-user isolation actually works in
+production, not just in the SQL tests.
+
+## Cold start
+
+Render's free tier sleeps after ~15 minutes idle; the next visit takes roughly a
+minute. The README already says so. Don't add a keep-alive cron — it burns Neon
+compute hours and Render discourages it.

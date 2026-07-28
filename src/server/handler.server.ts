@@ -33,8 +33,12 @@ function describeDbFailure(error: unknown): { message: string; hint: string } | 
 
   // Postgres / socket level failures
   const connectionCodes = new Set([
-    "ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "EHOSTUNREACH",
-    "ECONNRESET", "EPIPE",
+    "ECONNREFUSED",
+    "ENOTFOUND",
+    "ETIMEDOUT",
+    "EHOSTUNREACH",
+    "ECONNRESET",
+    "EPIPE",
     "28P01", // invalid_password
     "3D000", // invalid_catalog_name (database does not exist)
     "57P03", // cannot_connect_now
@@ -80,10 +84,10 @@ function csrfViolation(request: Request): Response | null {
   const site = request.headers.get("sec-fetch-site");
   if (site) {
     if (site === "same-origin" || site === "none") return null;
-    return new Response(
-      JSON.stringify({ error: "Cross-site requests are not allowed." }),
-      { status: 403, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Cross-site requests are not allowed." }), {
+      status: 403,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   // Older browser, or a non-browser client such as curl.
@@ -98,10 +102,10 @@ function csrfViolation(request: Request): Response | null {
     // Unparseable Origin — treat as hostile.
   }
 
-  return new Response(
-    JSON.stringify({ error: "Cross-site requests are not allowed." }),
-    { status: 403, headers: { "content-type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ error: "Cross-site requests are not allowed." }), {
+    status: 403,
+    headers: { "content-type": "application/json" },
+  });
 }
 
 export function apiRoute(handler: ApiHandler): ApiHandler {

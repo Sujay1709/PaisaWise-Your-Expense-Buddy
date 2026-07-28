@@ -122,9 +122,7 @@ export function SpendDashboard({
 
   // Detect money leaks — categories that are disproportionately high
   const leaks = stats.byCategory.filter((row) => row.pct >= 35);
-  const mediumLeaks = stats.byCategory.filter(
-    (row) => row.pct >= 20 && row.pct < 35,
-  );
+  const mediumLeaks = stats.byCategory.filter((row) => row.pct >= 20 && row.pct < 35);
 
   const fetchMonthlyInsight = useCallback(async () => {
     if (stats.expenseCount === 0) {
@@ -134,10 +132,7 @@ export function SpendDashboard({
     setInsightLoading(true);
     try {
       const summaryLines = stats.byCategory
-        .map(
-          (row) =>
-            `${row.category}: ₹${row.amount} (${row.pct}%)`,
-        )
+        .map((row) => `${row.category}: ₹${row.amount} (${row.pct}%)`)
         .join(", ");
 
       const prompt = `Analyse these expenses of an Indian college student. Total: ₹${stats.totalSpent}. Breakdown: ${summaryLines}. This week: ₹${stats.weekSpent}. Give: top 3 money leaks, 3 realistic saving tips, and a one-line habit to change. Keep it short, friendly, in Indian English. Format as JSON: {"leaks":["..."],"tips":["..."],"habit":"..."}`;
@@ -236,8 +231,7 @@ export function SpendDashboard({
           </p>
           {mediumLeaks.map((ml) => (
             <p key={ml.category} className="mt-1 text-sm text-brand-foreground/80">
-              {emojiFor(ml.category)} {ml.category}: {ml.pct}% (
-              {formatRupees(ml.amount)})
+              {emojiFor(ml.category)} {ml.category}: {ml.pct}% ({formatRupees(ml.amount)})
             </p>
           ))}
         </div>
@@ -274,12 +268,7 @@ export function SpendDashboard({
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 8 }}>
                   <XAxis type="number" hide />
-                  <YAxis
-                    type="category"
-                    dataKey="shortName"
-                    width={72}
-                    tick={{ fontSize: 11 }}
-                  />
+                  <YAxis type="category" dataKey="shortName" width={72} tick={{ fontSize: 11 }} />
                   <Tooltip
                     formatter={(value: number) => [formatRupees(value), "Spent"]}
                     contentStyle={{
@@ -290,10 +279,7 @@ export function SpendDashboard({
                   />
                   <Bar dataKey="amount" radius={[0, 6, 6, 0]}>
                     {chartData.map((_, i) => (
-                      <Cell
-                        key={`bar-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
+                      <Cell key={`bar-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -317,10 +303,7 @@ export function SpendDashboard({
                     style={{ fontSize: 10 }}
                   >
                     {chartData.map((_, i) => (
-                      <Cell
-                        key={`pie-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
+                      <Cell key={`pie-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
                   <Legend
@@ -379,9 +362,7 @@ export function SpendDashboard({
               ))}
             </div>
             <div className="rounded-xl border bg-brand-soft p-3">
-              <p className="text-xs font-bold text-brand-foreground">
-                Habit to Change
-              </p>
+              <p className="text-xs font-bold text-brand-foreground">Habit to Change</p>
               <p className="mt-1 text-xs text-foreground">{insight.habit}</p>
             </div>
           </div>
@@ -392,9 +373,7 @@ export function SpendDashboard({
       <div className="mt-auto grid grid-cols-2 gap-3 border-t pt-4 text-sm">
         <div>
           <p className="text-xs text-muted-foreground">Expenses logged</p>
-          <p className="font-display text-lg font-bold tabular-nums">
-            {stats.expenseCount}
-          </p>
+          <p className="font-display text-lg font-bold tabular-nums">{stats.expenseCount}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground">Income logged</p>
@@ -410,10 +389,12 @@ export function SpendDashboard({
 /** Fallback insights when AI is unavailable */
 function generateLocalInsights(stats: Stats): MonthlyInsight {
   const sorted = [...stats.byCategory].sort((a, b) => b.amount - a.amount);
-  const leaks = sorted.slice(0, 3).map(
-    (row) =>
-      `${emojiFor(row.category)} ${row.category} at ${row.pct}% (${formatRupees(row.amount)}) — consider cutting by 20%`,
-  );
+  const leaks = sorted
+    .slice(0, 3)
+    .map(
+      (row) =>
+        `${emojiFor(row.category)} ${row.category} at ${row.pct}% (${formatRupees(row.amount)}) — consider cutting by 20%`,
+    );
   const tips = [
     sorted[0]
       ? `Cook one more meal at home per week to save ~₹${Math.round(sorted[0].amount * 0.15)} on ${sorted[0].category}`
@@ -421,10 +402,9 @@ function generateLocalInsights(stats: Stats): MonthlyInsight {
     "Use student discounts on Amazon, Flipkart and Zomato Pro",
     "Start a ₹100/month SIP on Groww — builds the investing habit",
   ];
-  const habit =
-    sorted[0]
-      ? `Before every ${sorted[0].category.toLowerCase()} purchase, ask: "Do I need this or do I want this?"`
-      : "Track before you spend — awareness alone cuts costs by 10%.";
+  const habit = sorted[0]
+    ? `Before every ${sorted[0].category.toLowerCase()} purchase, ask: "Do I need this or do I want this?"`
+    : "Track before you spend — awareness alone cuts costs by 10%.";
 
   return { leaks, tips, habit };
 }

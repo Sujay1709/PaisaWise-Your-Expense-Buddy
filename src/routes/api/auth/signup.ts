@@ -3,17 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { apiRoute } from "@/server/handler.server";
 
 import { query } from "@/server/db.server";
-import {
-  createSession,
-  hashPassword,
-  json,
-  sessionCookie,
-} from "@/server/auth.server";
+import { createSession, hashPassword, json, sessionCookie } from "@/server/auth.server";
 import { clientIp, rateLimit, tooManyRequests } from "@/server/rate-limit.server";
 
 const AVATAR_COLORS = [
-  "#e8a838", "#4ade80", "#6366f1", "#f87171",
-  "#a78bfa", "#38bdf8", "#fb923c", "#f472b6",
+  "#e8a838",
+  "#4ade80",
+  "#6366f1",
+  "#f87171",
+  "#a78bfa",
+  "#38bdf8",
+  "#fb923c",
+  "#f472b6",
 ];
 
 function pickColor(email: string): string {
@@ -37,20 +38,20 @@ export const Route = createFileRoute("/api/auth/signup")({
           return json({ error: "Invalid request." }, { status: 400 });
         }
 
-        const email = String(body.email ?? "").trim().toLowerCase();
+        const email = String(body.email ?? "")
+          .trim()
+          .toLowerCase();
         const name = String(body.name ?? "").trim();
         const password = String(body.password ?? "");
 
         if (!email || !name || !password)
           return json({ error: "All fields are required." }, { status: 400 });
-        if (name.length > 80)
-          return json({ error: "Name is too long." }, { status: 400 });
+        if (name.length > 80) return json({ error: "Name is too long." }, { status: 400 });
         if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
           return json({ error: "Please enter a valid email." }, { status: 400 });
         if (password.length < 8)
           return json({ error: "Password must be at least 8 characters." }, { status: 400 });
-        if (password.length > 200)
-          return json({ error: "Password is too long." }, { status: 400 });
+        if (password.length > 200) return json({ error: "Password is too long." }, { status: 400 });
 
         const { hash, salt } = await hashPassword(password);
 
@@ -68,10 +69,7 @@ export const Route = createFileRoute("/api/auth/signup")({
           // handle here. Everything else (including "database unreachable")
           // is re-thrown so apiRoute can return an accurate, actionable error.
           if ((error as { code?: string }).code === "23505") {
-            return json(
-              { error: "An account with this email already exists." },
-              { status: 409 },
-            );
+            return json({ error: "An account with this email already exists." }, { status: 409 });
           }
           throw error;
         }

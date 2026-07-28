@@ -3,13 +3,13 @@ import { Camera, Check, Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { addExpenses, compressImage, scanReceipt, type ScannedItem } from "@/lib/api";
 import {
-  addExpenses,
-  compressImage,
-  scanReceipt,
-  type ScannedItem,
-} from "@/lib/api";
-import { CATEGORY_EMOJI, formatRupees, PW_CATEGORIES, type PwCategory } from "@/lib/paisawise-store";
+  CATEGORY_EMOJI,
+  formatRupees,
+  PW_CATEGORIES,
+  type PwCategory,
+} from "@/lib/paisawise-store";
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
 
@@ -69,14 +69,11 @@ export function ReceiptCapture({ onSaved }: { onSaved: () => void }) {
     }
   }, []);
 
-  const updateItem = useCallback(
-    (index: number, patch: Partial<ScannedItem>) => {
-      setItems((current) =>
-        current ? current.map((item, i) => (i === index ? { ...item, ...patch } : item)) : current,
-      );
-    },
-    [],
-  );
+  const updateItem = useCallback((index: number, patch: Partial<ScannedItem>) => {
+    setItems((current) =>
+      current ? current.map((item, i) => (i === index ? { ...item, ...patch } : item)) : current,
+    );
+  }, []);
 
   const removeItem = useCallback((index: number) => {
     setItems((current) => (current ? current.filter((_, i) => i !== index) : current));
@@ -175,9 +172,7 @@ export function ReceiptCapture({ onSaved }: { onSaved: () => void }) {
                       value={item.amount}
                       min={1}
                       step="0.01"
-                      onChange={(e) =>
-                        updateItem(index, { amount: Number(e.target.value) })
-                      }
+                      onChange={(e) => updateItem(index, { amount: Number(e.target.value) })}
                       className="w-24 rounded-md border bg-card px-2 py-1 text-sm tabular-nums outline-none focus:border-brand"
                     />
 

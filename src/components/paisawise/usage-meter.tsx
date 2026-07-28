@@ -106,9 +106,7 @@ export function UsageMeter({ refreshKey }: { refreshKey: number }) {
           </span>
         </div>
         {!isPro && (
-          <span className="text-[10px] text-muted-foreground">
-            {billing.plans.pro.price}
-          </span>
+          <span className="text-[10px] text-muted-foreground">{billing.plans.pro.price}</span>
         )}
       </div>
 
@@ -143,11 +141,7 @@ export function UsageMeter({ refreshKey }: { refreshKey: number }) {
             className="mt-3 w-full gap-1.5 text-xs"
           >
             <Sparkles className="size-3" />
-            {switching
-              ? "Switching..."
-              : isPro
-                ? "Switch back to Free"
-                : "Upgrade to Pro"}
+            {switching ? "Switching..." : isPro ? "Switch back to Free" : "Upgrade to Pro"}
           </Button>
           <p className="mt-1.5 text-center text-[10px] leading-tight text-muted-foreground">
             Demo mode — no payment is taken. Switch freely to see how quotas behave.

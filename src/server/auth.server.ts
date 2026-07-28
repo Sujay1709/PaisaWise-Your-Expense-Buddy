@@ -11,13 +11,7 @@
  * and it is not sent on cross-site requests (blocks CSRF).
  */
 
-import {
-  randomBytes,
-  scrypt,
-  timingSafeEqual,
-  createHash,
-  type ScryptOptions,
-} from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual, createHash, type ScryptOptions } from "node:crypto";
 import { promisify } from "node:util";
 
 import { query } from "./db.server";
@@ -38,9 +32,7 @@ const SESSION_TTL_DAYS = 30;
 
 // ─── Passwords ──────────────────────────────────────────────────
 
-export async function hashPassword(
-  password: string,
-): Promise<{ hash: string; salt: string }> {
+export async function hashPassword(password: string): Promise<{ hash: string; salt: string }> {
   const salt = randomBytes(16).toString("hex");
   const derived = await scryptAsync(password, salt, SCRYPT_KEYLEN, SCRYPT_OPTIONS);
   return { hash: derived.toString("hex"), salt };
@@ -83,18 +75,17 @@ export async function createSession(userId: string): Promise<string> {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SESSION_TTL_DAYS * 86_400_000);
 
-  await query(
-    "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, $3)",
-    [hashToken(token), userId, expiresAt],
-  );
+  await query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, $3)", [
+    hashToken(token),
+    userId,
+    expiresAt,
+  ]);
 
   return token;
 }
 
 /** Resolves a raw cookie token to a user, or null. */
-export async function getUserFromToken(
-  token: string | undefined,
-): Promise<AuthUser | null> {
+export async function getUserFromToken(token: string | undefined): Promise<AuthUser | null> {
   if (!token) return null;
 
   const rows = await query<{
@@ -154,13 +145,15 @@ export function readCookie(request: Request, name: string): string | undefined {
 
 export function sessionCookie(token: string): string {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return [
-    `${SESSION_COOKIE}=${encodeURIComponent(token)}`,
-    "Path=/",
-    "HttpOnly",
-    "SameSite=Lax",
-    `Max-Age=${SESSION_TTL_DAYS * 86_400}`,
-  ].join("; ") + secure;
+  return (
+    [
+      `${SESSION_COOKIE}=${encodeURIComponent(token)}`,
+      "Path=/",
+      "HttpOnly",
+      "SameSite=Lax",
+      `Max-Age=${SESSION_TTL_DAYS * 86_400}`,
+    ].join("; ") + secure
+  );
 }
 
 export function clearCookie(): string {

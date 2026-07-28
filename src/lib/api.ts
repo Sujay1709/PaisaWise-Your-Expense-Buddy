@@ -60,10 +60,7 @@ export type Stats = {
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
-async function request<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<Result<T>> {
+async function request<T>(path: string, init: RequestInit = {}): Promise<Result<T>> {
   try {
     const response = await fetch(path, {
       credentials: "same-origin",
@@ -128,11 +125,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
 // ─── Profile ────────────────────────────────────────────────────
 
-export function updateProfile(updates: {
-  name?: string;
-  bio?: string;
-  gender?: string;
-}) {
+export function updateProfile(updates: { name?: string; bio?: string; gender?: string }) {
   return request<{ ok: true; user: AuthUser }>("/api/profile", {
     method: "PATCH",
     body: JSON.stringify(updates),
@@ -179,9 +172,7 @@ export async function addExpenses(
 export function listExpenses(cursor?: string, limit = 50) {
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor) params.set("cursor", cursor);
-  return request<{ entries: ExpenseEntry[]; nextCursor: string | null }>(
-    `/api/expenses?${params}`,
-  );
+  return request<{ entries: ExpenseEntry[]; nextCursor: string | null }>(`/api/expenses?${params}`);
 }
 
 export function clearExpenses() {
@@ -304,9 +295,7 @@ export async function getStats(): Promise<Stats> {
 
 export async function getChatHistory(): Promise<unknown[]> {
   const result = await request<{ messages: unknown[] }>("/api/chat-history");
-  return result.ok && Array.isArray(result.data.messages)
-    ? result.data.messages
-    : [];
+  return result.ok && Array.isArray(result.data.messages) ? result.data.messages : [];
 }
 
 export function saveChatHistory(messages: unknown[]) {

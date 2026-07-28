@@ -8,7 +8,13 @@ import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
 import { checkReceiptQuota, quotaResponse, recordUsage } from "@/server/plans.server";
 
 const CATEGORIES = [
-  "Food", "Travel", "Education", "Entertainment", "Shopping", "Bills", "Other",
+  "Food",
+  "Travel",
+  "Education",
+  "Entertainment",
+  "Shopping",
+  "Bills",
+  "Other",
 ] as const;
 
 /** Images are large; the client downscales, but enforce a ceiling anyway. */
@@ -31,7 +37,10 @@ type ParsedItem = { amount: number; category: string; note: string };
 
 function extractJson(text: string): Record<string, unknown> | null {
   // Model may wrap output in fences or add stray prose despite instructions.
-  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const cleaned = text
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
   const start = cleaned.indexOf("{");
   const end = cleaned.lastIndexOf("}");
   if (start === -1 || end <= start) return null;
@@ -66,10 +75,7 @@ export const Route = createFileRoute("/api/receipt")({
 
         const contentLength = request.headers.get("content-length");
         if (contentLength && Number(contentLength) > MAX_IMAGE_BYTES) {
-          return json(
-            { error: "Image is too large. Try a smaller photo." },
-            { status: 413 },
-          );
+          return json({ error: "Image is too large. Try a smaller photo." }, { status: 413 });
         }
 
         let body: { image?: unknown };

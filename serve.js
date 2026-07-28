@@ -40,9 +40,7 @@ app.use("/*", serveStatic({ root: `${DIST}/client` }));
 const nodeExecutionCtx = {
   waitUntil: (promise) => {
     if (promise && typeof promise.catch === "function") {
-      promise.catch((error) =>
-        console.error("[server] background task failed", error),
-      );
+      promise.catch((error) => console.error("[server] background task failed", error));
     }
   },
   passThroughOnException: () => {},

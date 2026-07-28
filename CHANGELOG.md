@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.1] — 2026-07-28
+
+### Added
+- **CI workflow** (`.github/workflows/ci.yml`) — lint, typecheck and build on
+  every push and pull request. Replaces the Neon PR-branch workflow, which was
+  committed to `.github/workflows.yml` (a file, not the required directory) and
+  therefore would never have run.
+- `typecheck` npm script.
+
+### Changed
+- Formatted the entire source tree to match the project's Prettier config.
+  309 lint errors, all from code added in 3.0–3.2. Lint is now clean, so CI
+  passes on the first run.
+
 ## [3.2.0] — 2026-07-28 — Freemium + security fixes
 
 ### Security — three confirmed bugs fixed

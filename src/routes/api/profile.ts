@@ -43,8 +43,7 @@ export const Route = createFileRoute("/api/profile")({
         if (!name) return json({ error: "Name cannot be empty." }, { status: 400 });
         if (name.length > 80) return json({ error: "Name is too long." }, { status: 400 });
         if (bio.length > 200) return json({ error: "Bio is too long." }, { status: 400 });
-        if (!GENDERS.has(gender))
-          return json({ error: "Invalid gender value." }, { status: 400 });
+        if (!GENDERS.has(gender)) return json({ error: "Invalid gender value." }, { status: 400 });
 
         await query(
           `UPDATE users SET name = $1, bio = $2, gender = $3, updated_at = now()
@@ -90,8 +89,7 @@ export const Route = createFileRoute("/api/profile")({
           record.password_hash,
           record.password_salt,
         );
-        if (!valid)
-          return json({ error: "Current password is incorrect." }, { status: 403 });
+        if (!valid) return json({ error: "Current password is incorrect." }, { status: 403 });
 
         const { hash, salt } = await hashPassword(newPassword);
         await query(
@@ -104,10 +102,7 @@ export const Route = createFileRoute("/api/profile")({
         await destroyAllSessions(user.id);
         const token = await createSession(user.id);
 
-        return json(
-          { ok: true },
-          { headers: { "set-cookie": sessionCookie(token) } },
-        );
+        return json({ ok: true }, { headers: { "set-cookie": sessionCookie(token) } });
       }),
 
       /** Delete account and all data. */

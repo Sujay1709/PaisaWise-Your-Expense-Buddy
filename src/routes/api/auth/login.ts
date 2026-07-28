@@ -3,12 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { apiRoute } from "@/server/handler.server";
 
 import { query } from "@/server/db.server";
-import {
-  createSession,
-  json,
-  sessionCookie,
-  verifyPassword,
-} from "@/server/auth.server";
+import { createSession, json, sessionCookie, verifyPassword } from "@/server/auth.server";
 import { clientIp, rateLimit, tooManyRequests } from "@/server/rate-limit.server";
 
 export const Route = createFileRoute("/api/auth/login")({
@@ -22,7 +17,9 @@ export const Route = createFileRoute("/api/auth/login")({
           return json({ error: "Invalid request." }, { status: 400 });
         }
 
-        const email = String(body.email ?? "").trim().toLowerCase();
+        const email = String(body.email ?? "")
+          .trim()
+          .toLowerCase();
         const password = String(body.password ?? "");
 
         // Two limiters: per-IP stops spraying, per-account stops targeting
@@ -42,10 +39,7 @@ export const Route = createFileRoute("/api/auth/login")({
           id: string;
           password_hash: string;
           password_salt: string;
-        }>(
-          "SELECT id, password_hash, password_salt FROM users WHERE email = $1 LIMIT 1",
-          [email],
-        );
+        }>("SELECT id, password_hash, password_salt FROM users WHERE email = $1 LIMIT 1", [email]);
 
         const user = rows[0];
 

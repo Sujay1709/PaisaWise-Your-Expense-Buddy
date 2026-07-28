@@ -20,13 +20,10 @@ export const Route = createFileRoute("/api/health")({
           );
         } catch (error) {
           console.error("[health] db unreachable", error);
-          return new Response(
-            JSON.stringify({ status: "degraded", db: "down" }),
-            {
-              status: 503,
-              headers: { "content-type": "application/json", "cache-control": "no-store" },
-            },
-          );
+          return new Response(JSON.stringify({ status: "degraded", db: "down" }), {
+            status: 503,
+            headers: { "content-type": "application/json", "cache-control": "no-store" },
+          });
         }
       },
     },

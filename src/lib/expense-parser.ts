@@ -196,9 +196,30 @@ function isIncomeEntry(text: string): boolean {
 
 /** Filler words that add nothing to the note. */
 const FILLER_WORDS = new Set([
-  "rs", "rs.", "rupees", "inr", "for", "and", "to", "the", "a", "an",
-  "at", "on", "of", "my", "i", "spent", "paid", "was", "is", "it",
-  "today", "yesterday", "some", "got",
+  "rs",
+  "rs.",
+  "rupees",
+  "inr",
+  "for",
+  "and",
+  "to",
+  "the",
+  "a",
+  "an",
+  "at",
+  "on",
+  "of",
+  "my",
+  "i",
+  "spent",
+  "paid",
+  "was",
+  "is",
+  "it",
+  "today",
+  "yesterday",
+  "some",
+  "got",
 ]);
 
 function cleanWord(word: string): string {
@@ -223,7 +244,12 @@ export function segmentInput(text: string): string[] {
     const parts = line
       // Comma NOT followed by exactly 3 digits (protects "1,500")
       .split(/\s*,\s*(?!\d{3}(?:\D|$))|\s+and\s+|\s*&\s*/i)
-      .map((p) => p.trim().replace(/^and\s+/i, "").trim())
+      .map((p) =>
+        p
+          .trim()
+          .replace(/^and\s+/i, "")
+          .trim(),
+      )
       .filter(Boolean);
     segments.push(...parts);
   }

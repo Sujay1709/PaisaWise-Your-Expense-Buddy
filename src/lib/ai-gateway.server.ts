@@ -10,8 +10,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
  */
 export function createAIProvider() {
   const baseURL =
-    process.env.AI_PROVIDER_BASE_URL ||
-    "https://generativelanguage.googleapis.com/v1beta/openai";
+    process.env.AI_PROVIDER_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai";
   const apiKey = process.env.AI_API_KEY || "";
 
   return createOpenAICompatible({

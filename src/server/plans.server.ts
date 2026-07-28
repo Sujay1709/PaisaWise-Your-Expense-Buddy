@@ -109,10 +109,7 @@ export async function getUsage(userId: string, plan: PlanId): Promise<UsageSnaps
 }
 
 export async function recordUsage(userId: string, kind: "ai_chat" | "receipt_scan") {
-  await query("INSERT INTO usage_events (user_id, kind) VALUES ($1, $2)", [
-    userId,
-    kind,
-  ]);
+  await query("INSERT INTO usage_events (user_id, kind) VALUES ($1, $2)", [userId, kind]);
 }
 
 // ─── Quota checks ───────────────────────────────────────────────
@@ -125,12 +122,7 @@ export type QuotaDenial = {
   upgradeTo: "pro";
 };
 
-function denial(
-  what: string,
-  used: number,
-  limit: number,
-  period: string,
-): QuotaDenial {
+function denial(what: string, used: number, limit: number, period: string): QuotaDenial {
   return {
     error: `You've used all ${limit} ${what} on the Free plan this ${period}.`,
     hint: "Upgrade to Pro for unlimited usage, or wait for the next period.",
@@ -155,10 +147,7 @@ export async function checkExpenseQuota(
   return null;
 }
 
-export async function checkAiQuota(
-  userId: string,
-  plan: PlanId,
-): Promise<QuotaDenial | null> {
+export async function checkAiQuota(userId: string, plan: PlanId): Promise<QuotaDenial | null> {
   const limit = limitsFor(plan).aiChatsPerDay;
   if (limit === null) return null;
 
@@ -169,10 +158,7 @@ export async function checkAiQuota(
   return null;
 }
 
-export async function checkReceiptQuota(
-  userId: string,
-  plan: PlanId,
-): Promise<QuotaDenial | null> {
+export async function checkReceiptQuota(userId: string, plan: PlanId): Promise<QuotaDenial | null> {
   const limit = limitsFor(plan).receiptScansPerMonth;
   if (limit === null) return null;
 

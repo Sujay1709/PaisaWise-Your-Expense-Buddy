@@ -222,9 +222,7 @@ function Landing() {
                 <a href="#how">See how it works</a>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Free forever · No card required
-            </p>
+            <p className="mt-4 text-sm text-muted-foreground">Free forever · No card required</p>
           </div>
 
           <div className="rounded-3xl border bg-card p-4 shadow-warm">
@@ -233,7 +231,7 @@ function Landing() {
                 You type
               </p>
               <pre className="mt-2 whitespace-pre-wrap text-foreground">
-{`250 zomato dinner
+                {`250 zomato dinner
 30 auto college
 1500 amazon earphones`}
               </pre>
@@ -278,7 +276,9 @@ function Landing() {
       {/* How it works */}
       <section id="how" className="scroll-mt-16 border-y bg-secondary/50">
         <div className="mx-auto max-w-6xl px-5 py-16">
-          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">Three steps. That's it.</h2>
+          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">
+            Three steps. That's it.
+          </h2>
           <ol className="mt-10 grid gap-6 md:grid-cols-3">
             {[
               {

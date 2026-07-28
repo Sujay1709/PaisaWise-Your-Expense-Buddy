@@ -89,8 +89,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:title", content: "PaisaWise — Smart Expense Assistant for Indian Students" },
       { name: "twitter:title", content: "PaisaWise — Smart Expense Assistant for Indian Students" },
-      { property: "og:description", content: "PaisaWise turns casual expense notes like '250 zomato dinner' into flashcards, category charts and savings tips. Built for Indian college students." },
-      { name: "twitter:description", content: "PaisaWise turns casual expense notes like '250 zomato dinner' into flashcards, category charts and savings tips. Built for Indian college students." },
+      {
+        property: "og:description",
+        content:
+          "PaisaWise turns casual expense notes like '250 zomato dinner' into flashcards, category charts and savings tips. Built for Indian college students.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "PaisaWise turns casual expense notes like '250 zomato dinner' into flashcards, category charts and savings tips. Built for Indian college students.",
+      },
       { property: "og:image", content: "/favicon.ico" },
       { name: "twitter:image", content: "/favicon.ico" },
     ],

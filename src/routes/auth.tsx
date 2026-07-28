@@ -38,9 +38,7 @@ function AuthPage() {
       setLoading(true);
 
       const result =
-        mode === "signup"
-          ? await signUp(email, name, password)
-          : await signIn(email, password);
+        mode === "signup" ? await signUp(email, name, password) : await signIn(email, password);
 
       setLoading(false);
 
@@ -74,7 +72,10 @@ function AuthPage() {
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             {mode === "signup" && (
               <div>
-                <label htmlFor="auth-name" className="block text-sm font-medium text-foreground mb-1.5">
+                <label
+                  htmlFor="auth-name"
+                  className="block text-sm font-medium text-foreground mb-1.5"
+                >
                   Name
                 </label>
                 <input
@@ -92,7 +93,10 @@ function AuthPage() {
             )}
 
             <div>
-              <label htmlFor="auth-email" className="block text-sm font-medium text-foreground mb-1.5">
+              <label
+                htmlFor="auth-email"
+                className="block text-sm font-medium text-foreground mb-1.5"
+              >
                 Email
               </label>
               <input
@@ -108,7 +112,10 @@ function AuthPage() {
             </div>
 
             <div>
-              <label htmlFor="auth-password" className="block text-sm font-medium text-foreground mb-1.5">
+              <label
+                htmlFor="auth-password"
+                className="block text-sm font-medium text-foreground mb-1.5"
+              >
                 Password
               </label>
               <input
@@ -141,7 +148,10 @@ function AuthPage() {
                 New here?{" "}
                 <button
                   type="button"
-                  onClick={() => { setMode("signup"); setError(""); }}
+                  onClick={() => {
+                    setMode("signup");
+                    setError("");
+                  }}
                   className="font-semibold text-brand hover:underline"
                 >
                   Create an account
@@ -152,7 +162,10 @@ function AuthPage() {
                 Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => { setMode("signin"); setError(""); }}
+                  onClick={() => {
+                    setMode("signin");
+                    setError("");
+                  }}
                   className="font-semibold text-brand hover:underline"
                 >
                   Sign in

@@ -6,7 +6,13 @@ import { json, requireUser, unauthorized } from "@/server/auth.server";
 import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
 
 const CATEGORIES = new Set([
-  "Food", "Travel", "Education", "Entertainment", "Shopping", "Bills", "Other",
+  "Food",
+  "Travel",
+  "Education",
+  "Entertainment",
+  "Shopping",
+  "Bills",
+  "Other",
 ]);
 
 /** Pulls the trailing path segment: /api/expenses/123 -> "123". */

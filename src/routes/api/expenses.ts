@@ -8,7 +8,13 @@ import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
 import { checkExpenseQuota, quotaResponse } from "@/server/plans.server";
 
 const CATEGORIES = new Set([
-  "Food", "Travel", "Education", "Entertainment", "Shopping", "Bills", "Other",
+  "Food",
+  "Travel",
+  "Education",
+  "Entertainment",
+  "Shopping",
+  "Bills",
+  "Other",
 ]);
 
 /** Hard cap per request. Bigger imports are chunked by the client. */
@@ -38,10 +44,7 @@ export const Route = createFileRoute("/api/expenses")({
         if (!user) return unauthorized();
 
         const url = new URL(request.url);
-        const limit = Math.min(
-          Math.max(Number(url.searchParams.get("limit") ?? 50), 1),
-          MAX_PAGE,
-        );
+        const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 50), 1), MAX_PAGE);
         const cursor = url.searchParams.get("cursor");
 
         let rows;
@@ -68,15 +71,17 @@ export const Route = createFileRoute("/api/expenses")({
           );
         }
 
-        const entries = (rows as Array<{
-          id: string;
-          amount: string;
-          category: string;
-          merchant: string | null;
-          note: string;
-          kind: string;
-          occurred_at: Date;
-        }>).map((r) => ({
+        const entries = (
+          rows as Array<{
+            id: string;
+            amount: string;
+            category: string;
+            merchant: string | null;
+            note: string;
+            kind: string;
+            occurred_at: Date;
+          }>
+        ).map((r) => ({
           id: String(r.id),
           amount: Number(r.amount),
           category: r.category,
@@ -117,10 +122,7 @@ export const Route = createFileRoute("/api/expenses")({
           return json({ error: "entries must be an array." }, { status: 400 });
         if (body.entries.length === 0) return json({ inserted: 0 });
         if (body.entries.length > MAX_BATCH)
-          return json(
-            { error: `Send at most ${MAX_BATCH} entries per request.` },
-            { status: 400 },
-          );
+          return json({ error: `Send at most ${MAX_BATCH} entries per request.` }, { status: 400 });
 
         const clean: {
           amount: number;
@@ -135,9 +137,7 @@ export const Route = createFileRoute("/api/expenses")({
           const amount = Number(raw.amount);
           if (!Number.isFinite(amount) || amount <= 0 || amount > 99_999_999) continue;
 
-          const category = CATEGORIES.has(String(raw.category))
-            ? String(raw.category)
-            : "Other";
+          const category = CATEGORIES.has(String(raw.category)) ? String(raw.category) : "Other";
           const merchantRaw = raw.merchant == null ? null : String(raw.merchant).slice(0, 80);
           const note = String(raw.note ?? "").slice(0, 280);
           const kind = raw.type === "income" ? "income" : "expense";

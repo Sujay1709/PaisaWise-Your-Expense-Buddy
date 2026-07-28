@@ -139,8 +139,12 @@ export function ChatWindow() {
     requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
-  useEffect(() => { focusInput(); }, [focusInput]);
-  useEffect(() => { if (status === "ready") focusInput(); }, [status, focusInput]);
+  useEffect(() => {
+    focusInput();
+  }, [focusInput]);
+  useEffect(() => {
+    if (status === "ready") focusInput();
+  }, [status, focusInput]);
 
   const send = useCallback(
     (text: string) => {
