@@ -1,174 +1,192 @@
-# Deploying PaisaWise
+# Deploying PaisaWise — free
 
-## 1. Push this code to GitHub
+Total cost: **₹0**. Neon for Postgres, Render for the web service, Gemini free
+tier for AI.
 
-Your existing repo was created by Lovable. This folder is **not** a git repo yet
-(it is the extracted zip), so you have two options.
+---
 
-### Option A — replace the Lovable repo contents (keeps the repo, history, stars)
+## 1. Database — Neon
 
-```sh
-cd /Users/sujaygopal/paisa-savvy-student-main
+Neon's free tier is permanent (not a trial): 0.5 GB storage, 100 CU-hours per
+month, no card required.
 
-git init
-git remote add origin https://github.com/Sujay1709/paisa-savvy-student.git
-git fetch origin
+1. Sign up at <https://neon.tech> → **Create project** (pick the region nearest
+   your users — Singapore or Mumbai for India).
+2. Copy the **connection string** from the dashboard. It looks like:
+   ```
+   postgresql://user:pass@ep-something-123456.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+   ```
 
-# Start from the remote branch, then swap in this code
-git checkout -b main origin/main
+Neon uses publicly trusted certificates, so the app verifies them properly —
+no `rejectUnauthorized: false` weakening on this path.
 
-# Remove every tracked file, then re-add the current folder contents
-git rm -r --cached . > /dev/null
-git add -A
-git commit -m "Rebuild as a real SaaS: Postgres backend, server auth, Railway deploy
+**Scale-to-zero is mandatory on free.** The database sleeps when idle and takes
+a few hundred ms to wake. Fine for a portfolio demo.
 
-- Remove all Lovable dependencies, branding, and config
-- Replace browser storage with Postgres (users, sessions, expenses, chat)
-- Server-side auth: scrypt hashing, httpOnly session cookies
-- SQL-aggregated dashboard so data volume does not affect load time
-- Keyset pagination, bulk insert caps, rate limiting, health checks"
+---
 
-git push origin main
-```
+## 2. Web service — Render
 
-If the push is rejected because histories differ, force it — this is the
-intended outcome, you are replacing the Lovable code:
-
-```sh
-git push --force origin main
-```
-
-### Option B — fresh repo
-
-```sh
-cd /Users/sujaygopal/paisa-savvy-student-main
-git init
-git add -A
-git commit -m "PaisaWise — initial commit"
-git branch -M main
-git remote add origin https://github.com/Sujay1709/paisawise.git
-git push -u origin main
-```
-
-### Delete the leftover Lovable folder first
-
-The sandbox could not remove these. Run this before committing:
-
-```sh
-rm -rf .lovable
-rm -f src/lib/db.ts src/lib/auth-store.ts
-```
-
-Both `db.ts` and `auth-store.ts` are dead files from the old browser-storage
-version. They now throw on import so a stale reference fails loudly rather
-than silently using removed code.
-
-### Verify no secrets are committed
-
-```sh
-git log --all -p | grep -iE "AI_API_KEY=|DATABASE_URL=postgres" | grep -v example
-```
-
-Should print nothing. `.env` is gitignored; `.env.example` holds only placeholders.
-
-## 2. Deploy on Railway
-
-1. **New Project → Deploy from GitHub repo**, pick your repo.
-2. **Add a database**: *New → Database → Add PostgreSQL*. Railway provisions it
-   and exposes `DATABASE_URL` on the Postgres service.
-3. **Set variables** on the *app* service (Variables tab):
+1. Sign up at <https://render.com> → **New → Web Service** → connect your repo.
+2. Render reads `render.yaml` automatically. If configuring manually:
+   - Runtime **Node**, Plan **Free**, Region **Singapore**
+   - Build: `npm ci && npm run build`
+   - Start: `npm run start`
+   - Health check path: `/api/health`
+3. Add the two secret env vars in the dashboard (the rest come from `render.yaml`):
 
    | Variable | Value |
    |---|---|
-   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` — reference, do not paste the literal string |
-   | `AI_API_KEY` | your Gemini key from https://aistudio.google.com/apikey |
-   | `AI_PROVIDER_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai` |
-   | `AI_MODEL` | `gemini-2.0-flash` |
-   | `NODE_ENV` | `production` |
+   | `DATABASE_URL` | your Neon connection string |
+   | `AI_API_KEY` | your key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 
-   Do **not** set `PORT` — Railway injects it and the server binds to it.
+4. Deploy. Watch for `[db] schema ready` in the logs — migrations run on boot.
 
-4. **Generate a domain**: Settings → Networking → Generate Domain.
-5. Watch the deploy logs. You should see `[db] schema ready` — migrations run
-   automatically on boot, so there is no manual migration step.
+**Do not use Render's free Postgres.** It is deleted after 30 days. Neon's is not.
 
-The healthcheck at `/api/health` verifies Postgres is reachable, so a deploy
-with a bad `DATABASE_URL` fails the healthcheck instead of serving broken pages.
+### The cold start
 
-## 3. Local development
+Render's free web service spins down after ~15 minutes idle. The next visitor
+waits roughly a minute for it to wake. Say so in your README rather than letting
+a recruiter conclude the project is broken:
+
+```markdown
+### [🔗 Live demo](https://paisawise.onrender.com)
+*Free tier — the first load after inactivity takes ~60s while the server wakes.*
+```
+
+Do **not** add a cron job to ping the service and keep it warm. It burns your
+Neon compute hours, and Render's terms discourage it.
+
+---
+
+## 3. Environment variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes | Postgres connection string |
+| `AI_API_KEY` | yes | Gemini key; AI features return 503 without it |
+| `AI_PROVIDER_BASE_URL` | no | Defaults to Gemini's OpenAI-compatible endpoint |
+| `AI_MODEL` | no | Defaults to `gemini-2.0-flash`. **Must support vision** for receipt scanning |
+| `NODE_ENV` | yes | `production` — enables the `Secure` cookie flag |
+| `TRUSTED_PROXY_HOPS` | no | Proxies in front of the app. `1` for Render. See below |
+| `PG_POOL_MAX` | no | Max DB connections per instance (default 10; use 5 on free tiers) |
+| `DATABASE_CA_CERT` | no | CA certificate for full TLS verification |
+| `ALLOW_DEMO_UPGRADE` | no | `true` lets visitors toggle Pro without payment |
+
+### `TRUSTED_PROXY_HOPS` matters for security
+
+Rate limiting keys on client IP, read from `X-Forwarded-For`. That header is a
+list each proxy **appends** to, so the leftmost entry is whatever the client
+sent — attacker-controlled. Reading it lets an attacker rotate a fake IP per
+request and bypass every IP-based limit, including login brute-force protection.
+
+The app counts back from the right by `TRUSTED_PROXY_HOPS`. Set it to the number
+of proxies **you** control:
+
+- Render, Railway, Fly (direct): `1`
+- Behind Cloudflare as well: `2`
+
+Too high and you read a client-supplied value again; too low and everyone shares
+a rate-limit bucket.
+
+---
+
+## 4. Local development
 
 ```sh
-cp .env.example .env      # then fill in real values
+cp .env.example .env    # fill in DATABASE_URL and AI_API_KEY
 npm install
 npm run dev
 ```
 
-You need a local Postgres. Quickest path:
+Point `DATABASE_URL` at either your Neon database or a local Postgres:
 
 ```sh
 docker run --name paisawise-db -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=paisawise -p 5432:5432 -d postgres:16
 ```
 
-## 4. Scale and reliability notes
+Local connections skip TLS automatically.
 
-**Why data volume does not degrade the app.** The dashboard never downloads
-expense rows. `/api/stats` runs `SUM(...) GROUP BY category` in Postgres against
-the `(user_id, occurred_at)` index and returns roughly 10 numbers. Response size
-and query time are effectively constant whether a user has 50 expenses or
-5 million — the index means Postgres only touches that user's rows.
+**Using Neon for local dev means dev and production share one database** —
+test signups appear in your live demo. Create a second free Neon project, or use
+Neon's branching, to separate them.
 
-**Pagination uses keyset, not OFFSET.** `/api/expenses?cursor=...` seeks on
-`(occurred_at, id)`. With `OFFSET`, page 5000 would force Postgres to walk and
-discard the preceding rows; keyset makes every page cost the same.
+---
 
-**Write path is bounded.** Bulk insert is capped at 500 rows per request and
-512KB per payload; the client chunks larger imports automatically. Each chunk is
-one transaction, so a failure mid-import cannot leave half-written rows.
+## 5. Freemium tiers
 
-**Chat transcripts are capped** at 60 messages / 256KB per user. This is the one
-table that could otherwise grow unbounded, since AI replies are long.
+| | Free | Pro (₹99/mo) |
+|---|---|---|
+| Expenses | 50/month | Unlimited |
+| AI messages | 5/day | Unlimited |
+| Receipt scans | 3/month | Unlimited |
+| Monthly AI insights | — | ✓ |
 
-**Connection pool is bounded** (`PG_POOL_MAX`, default 10) with a 15s
-`statement_timeout`. A slow query cannot pin a connection indefinitely, and
-traffic spikes queue rather than exhausting Postgres connection slots.
+Limits live in `src/server/plans.server.ts`. Quotas are enforced server-side and
+return **HTTP 402 Payment Required**, which the UI turns into an upgrade prompt.
 
-**Graceful shutdown.** On `SIGTERM` (every Railway redeploy) the pool drains so
-in-flight transactions complete instead of being cut mid-write.
+The two metered actions — AI chat and receipt scanning — are the only ones that
+cost real money per use, which is why they carry the tightest caps. Expense
+counts are read from the `expenses` table rather than a counter, so they cannot
+drift when rows are deleted.
+
+**No real payments are processed.** `POST /api/billing` switches the plan column
+directly and is gated behind `ALLOW_DEMO_UPGRADE`. Charging money in India needs
+a payment gateway, a registered business, KYC and GST — none of which exist here.
+To go live, replace that one handler with a Razorpay webhook that sets the same
+column. Nothing else in the codebase changes.
+
+---
+
+## 6. Scale and reliability
+
+**Why data volume doesn't degrade the app.** `/api/stats` runs
+`SUM(...) GROUP BY category` in Postgres against the `(user_id, occurred_at)`
+index and returns about ten numbers. The browser never receives raw expense
+rows, so response size and query time are effectively constant whether a user
+has 50 expenses or 5 million.
+
+**Keyset pagination, not OFFSET.** `/api/expenses?cursor=...` seeks on
+`(occurred_at, id)`. With `OFFSET`, page 5000 forces Postgres to walk and discard
+everything before it; keyset makes every page cost the same.
+
+**Bounded writes.** Bulk insert caps at 500 rows and 512KB per request; the
+client chunks larger imports and each chunk is one transaction. Chat transcripts
+cap at 60 messages / 256KB per user — the one table that could otherwise grow
+without limit, since AI replies are long.
+
+**Bounded connections.** `PG_POOL_MAX` with a 15s `statement_timeout`, and the
+pool drains on `SIGTERM` so redeploys don't sever in-flight transactions.
 
 **Rate limits** are per-instance and in-memory:
 
 | Action | Limit |
 |---|---|
 | Signup | 5 per IP per hour |
-| Login | 20 per IP and 10 per account per 15 min |
+| Login | 20 per IP, 10 per account, per 15 min |
 | AI chat | 30 per user per 10 min |
+| Receipt scan | 15 per user per 10 min |
 | Expense writes | 120 per user per minute |
 
-If you scale past one replica, each replica keeps its own counters, so the
-effective limit multiplies. Move these to Redis if you need a hard global cap.
+Scaling past one instance means each replica keeps its own counters, so the
+effective limit multiplies. Move to Redis if you need a hard global cap.
 
-### When you outgrow this
+---
 
-- **Multiple replicas**: raise `numReplicas` in `railway.json`. Sessions live in
-  Postgres, so any replica can serve any user — no sticky sessions needed. Move
-  rate limiting to Redis at that point.
-- **Very large tables**: if `expenses` passes ~50M rows, partition by month
-  (`PARTITION BY RANGE (occurred_at)`) so old data can be dropped cheaply.
-- **Dashboard caching**: if `/api/stats` ever becomes hot, cache per user for
-  30–60s or maintain a rollup table updated on write.
+## 7. Known gaps before real users
 
-## 5. Security summary
+These are deliberate omissions, not oversights:
 
-- Passwords hashed with scrypt (memory-hard, per-user random salt), compared in
-  constant time.
-- Session tokens are 256-bit random; only their SHA-256 is stored, so a database
-  dump does not yield usable sessions.
-- Cookies are `httpOnly` (XSS cannot read them), `SameSite=Lax` (blocks CSRF),
-  and `Secure` in production.
-- Login timing is equalised so response time does not reveal whether an account
-  exists; errors are generic to prevent user enumeration.
-- Changing a password invalidates every other session.
-- All SQL uses bound parameters — no string interpolation anywhere.
-- `ON DELETE CASCADE` means account deletion removes all associated data.
-- AI endpoint requires authentication so anonymous traffic cannot burn API credits.
+- **No password reset.** Forgotten password means permanent lockout. Needs an
+  email provider.
+- **No email verification.** Anyone can register with anyone's address.
+- **Receipts are sent to Google.** Receipt images can contain names, card
+  last-4, addresses. India's DPDP Act requires explicit consent and a privacy
+  policy, and Gemini's free tier may use submitted data for training — the wrong
+  tier for financial documents.
+- **No backups.** Neon free has no point-in-time recovery.
+- **Unverified TLS on some providers.** Neon and Supabase verify properly; other
+  hosts fall back to encrypted-but-unauthenticated unless you set
+  `DATABASE_CA_CERT`. The app logs a warning when this happens.

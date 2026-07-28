@@ -2,6 +2,63 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] — 2026-07-28 — Freemium + security fixes
+
+### Security — three confirmed bugs fixed
+
+1. **IP rate limiting was bypassable.** `clientIp()` read the *leftmost*
+   `X-Forwarded-For` entry, which is whatever the client sent. An attacker could
+   rotate a fake IP per request and reset every IP-based limit, defeating login
+   brute-force protection. Now counts back from the right by
+   `TRUSTED_PROXY_HOPS` (default 1), reading only entries our own proxy appended.
+   Verified against 6 header-spoofing scenarios.
+2. **CSRF middleware never covered the API routes.** TanStack's built-in
+   protection filters on `handlerType === "serverFn"`, so every REST endpoint
+   relied solely on `SameSite=Lax`. Added a `Sec-Fetch-Site` check (with
+   Origin/Host fallback) to `apiRoute`, applied to all state-changing methods.
+   Verified: cross-site POST → 403, same-origin → passes, GET unaffected,
+   non-browser clients unaffected.
+3. **Database TLS was encrypted but not authenticated.**
+   `rejectUnauthorized: false` let anything on the network path present its own
+   certificate. Now verifies against the public CA store for Neon and Supabase,
+   supports a pinned CA via `DATABASE_CA_CERT`, and logs a loud warning when it
+   must fall back.
+
+### Added — freemium
+- **Plans** (`src/server/plans.server.ts`) — Free (50 expenses/month, 5 AI
+  messages/day, 3 receipt scans/month, 90-day history) and Pro (unlimited plus
+  monthly AI insights).
+- **Metered usage** — new `usage_events` table indexed on
+  `(user_id, kind, occurred_at)`. Expense counts read from the `expenses` table
+  rather than a counter, so they cannot drift when rows are deleted.
+- **Quota enforcement** returning HTTP 402 on `/api/expenses`, `/api/chat` and
+  `/api/receipt`.
+- **`/api/billing`** — plans, live usage, and plan switching.
+- **Usage meter UI** in the sidebar with per-quota progress bars that turn amber
+  at 80% and red when exhausted.
+- **`users.plan` / `users.plan_since`** via `ALTER TABLE ... IF NOT EXISTS`, safe
+  to re-run against databases created by earlier versions.
+
+### Added — deployment
+- **`render.yaml`** for free Render deploys, with `TRUSTED_PROXY_HOPS=1` and a
+  reduced `PG_POOL_MAX` suited to free-tier connection limits.
+- **DEPLOYMENT.md** rewritten for Neon + Render, including why Render's own free
+  Postgres is unsuitable (deleted after 30 days) and why not to keep-alive ping.
+
+### Notes
+No payment provider is integrated. `POST /api/billing` sets the plan column
+directly and is gated behind `ALLOW_DEMO_UPGRADE`, so visitors can toggle Pro to
+see quota behaviour. Real billing means replacing that one handler with a
+gateway webhook; no other code changes.
+
+### Verified
+14 SQL assertions against a real Postgres engine: schema applies and re-applies
+idempotently, new users default to Free, monthly expense counts correctly exclude
+income and prior months, daily AI counts exclude yesterday, monthly scan counts
+exclude last month, quota arithmetic allows and blocks at the right boundaries,
+upgrade sets the plan, and `usage_events` cascades on account deletion. Plus
+clean typecheck, successful build, and 6 CSRF/IP scenarios exercised over HTTP.
+
 ## [3.1.0] — 2026-07-28
 
 ### Added

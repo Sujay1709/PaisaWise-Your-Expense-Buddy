@@ -5,6 +5,7 @@ import { apiRoute } from "@/server/handler.server";
 import { query, transaction } from "@/server/db.server";
 import { json, requireUser, unauthorized } from "@/server/auth.server";
 import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
+import { checkExpenseQuota, quotaResponse } from "@/server/plans.server";
 
 const CATEGORIES = new Set([
   "Food", "Travel", "Education", "Entertainment", "Shopping", "Bills", "Other",
@@ -151,6 +152,10 @@ export const Route = createFileRoute("/api/expenses")({
         }
 
         if (clean.length === 0) return json({ inserted: 0 });
+
+        // Free plan caps expenses per calendar month.
+        const overQuota = await checkExpenseQuota(user.id, user.plan, clean.length);
+        if (overQuota) return quotaResponse(overQuota);
 
         // Build a single multi-row INSERT with bound parameters.
         const values: unknown[] = [];

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ApiBillingRouteImport } from './routes/api/billing'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiChatHistoryRouteImport } from './routes/api/chat-history'
 import { Route as ApiExpensesRouteImport } from './routes/api/expenses'
@@ -44,6 +45,11 @@ const AuthRoute = AuthRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingRoute = ApiBillingRouteImport.update({
+  id: '/api/billing',
+  path: '/api/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/billing': typeof ApiBillingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/chat-history': typeof ApiChatHistoryRoute
   '/api/expenses': typeof ApiExpensesRouteWithChildren
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/billing': typeof ApiBillingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/chat-history': typeof ApiChatHistoryRoute
   '/api/expenses': typeof ApiExpensesRouteWithChildren
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/billing': typeof ApiBillingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/chat-history': typeof ApiChatHistoryRoute
   '/api/expenses': typeof ApiExpensesRouteWithChildren
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/sitemap.xml'
+    | '/api/billing'
     | '/api/chat'
     | '/api/chat-history'
     | '/api/expenses'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/sitemap.xml'
+    | '/api/billing'
     | '/api/chat'
     | '/api/chat-history'
     | '/api/expenses'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/sitemap.xml'
+    | '/api/billing'
     | '/api/chat'
     | '/api/chat-history'
     | '/api/expenses'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiBillingRoute: typeof ApiBillingRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiChatHistoryRoute: typeof ApiChatHistoryRoute
   ApiExpensesRoute: typeof ApiExpensesRouteWithChildren
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing': {
+      id: '/api/billing'
+      path: '/api/billing'
+      fullPath: '/api/billing'
+      preLoaderRoute: typeof ApiBillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -371,6 +391,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiBillingRoute: ApiBillingRoute,
   ApiChatRoute: ApiChatRoute,
   ApiChatHistoryRoute: ApiChatHistoryRoute,
   ApiExpensesRoute: ApiExpensesRouteWithChildren,

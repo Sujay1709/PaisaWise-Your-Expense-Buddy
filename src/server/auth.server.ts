@@ -75,6 +75,7 @@ export type AuthUser = {
   gender: string;
   avatarColor: string;
   createdAt: string;
+  plan: "free" | "pro";
 };
 
 /** Creates a session row and returns the raw token for the cookie. */
@@ -104,8 +105,9 @@ export async function getUserFromToken(
     gender: string;
     avatar_color: string;
     created_at: Date;
+    plan: string;
   }>(
-    `SELECT u.id, u.email, u.name, u.bio, u.gender, u.avatar_color, u.created_at
+    `SELECT u.id, u.email, u.name, u.bio, u.gender, u.avatar_color, u.created_at, u.plan
        FROM sessions s
        JOIN users u ON u.id = s.user_id
       WHERE s.token_hash = $1 AND s.expires_at > now()
@@ -124,6 +126,7 @@ export async function getUserFromToken(
     gender: row.gender,
     avatarColor: row.avatar_color,
     createdAt: row.created_at.toISOString(),
+    plan: row.plan === "pro" ? "pro" : "free",
   };
 }
 

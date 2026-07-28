@@ -62,11 +62,40 @@ export function rateLimit(
   return { allowed: true, retryAfterSeconds: 0 };
 }
 
-/** Best-effort client IP behind Railway's proxy. */
+/**
+ * Client IP, resistant to header spoofing.
+ *
+ * SECURITY: `X-Forwarded-For` is a list that each proxy *appends* to, so the
+ * LEFTMOST entry is whatever the client sent — fully attacker-controlled.
+ * Reading it means an attacker rotates a fake IP per request and every
+ * IP-based limit resets, defeating brute-force protection entirely.
+ *
+ * Only the entries your own infrastructure appended can be trusted. With one
+ * proxy in front (Render, Railway, Fly, Cloudflare), the real client IP is the
+ * LAST entry. Set TRUSTED_PROXY_HOPS if you add more proxies in the chain.
+ */
 export function clientIp(request: Request): string {
+  const hops = Math.max(1, Number(process.env.TRUSTED_PROXY_HOPS ?? 1));
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return request.headers.get("x-real-ip") ?? "unknown";
+
+  if (forwarded) {
+    const chain = forwarded
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (chain.length > 0) {
+      // Count back from the right by the number of proxies we control.
+      const index = Math.max(0, chain.length - hops);
+      return chain[index];
+    }
+  }
+
+  // Set by the proxy itself, not forwarded from the client.
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  return "unknown";
 }
 
 export function tooManyRequests(retryAfterSeconds: number): Response {

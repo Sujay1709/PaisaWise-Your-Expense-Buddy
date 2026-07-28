@@ -7,6 +7,7 @@ import { createAIProvider, getModelId } from "@/lib/ai-gateway.server";
 import { PAISAWISE_SYSTEM_PROMPT } from "@/lib/paisawise-prompt.server";
 import { requireUser } from "@/server/auth.server";
 import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
+import { checkAiQuota, quotaResponse, recordUsage } from "@/server/plans.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -47,11 +48,16 @@ export const Route = createFileRoute("/api/chat")({
           return new Response("Conversation too long", { status: 400 });
         }
 
+        // Free plan caps AI messages per day — these cost real money per call.
+        const overQuota = await checkAiQuota(user.id, user.plan);
+        if (overQuota) return quotaResponse(overQuota);
+
         if (!process.env.AI_API_KEY) {
           return new Response("AI is not configured. Set AI_API_KEY.", { status: 503 });
         }
 
         const provider = createAIProvider();
+        await recordUsage(user.id, "ai_chat");
 
         const result = streamText({
           model: provider(getModelId()),

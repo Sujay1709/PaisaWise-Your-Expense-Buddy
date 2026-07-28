@@ -8,6 +8,10 @@ Type your spending the way you'd text a friend. Or just photograph the bill.
 
 Built by **Sujay Gopal**
 
+### [🔗 Live demo](https://paisawise.onrender.com)
+
+*Hosted on a free tier — the first load after inactivity takes ~60s while the server wakes.*
+
 </div>
 
 <img src="docs/hero.svg" alt="PaisaWise landing page" width="100%">
@@ -113,6 +117,29 @@ give me 3 ways to earn on the side as a CS student
 
 ---
 
+## Pricing
+
+| | Free | Pro |
+|---|---|---|
+| **Price** | ₹0 | ₹99/month |
+| Expenses | 50/month | Unlimited |
+| AI messages | 5/day | Unlimited |
+| Receipt scans | 3/month | Unlimited |
+| Charts & leak detection | ✓ | ✓ |
+| Monthly AI insights | — | ✓ |
+
+Quotas are enforced server-side in `src/server/plans.server.ts` and return
+**HTTP 402 Payment Required**, which the UI renders as an upgrade prompt. The two
+metered actions — AI chat and receipt scanning — carry the tightest caps because
+they are the only operations that cost real money per use.
+
+> **No payments are processed.** Plan switching is a demo toggle gated behind
+> `ALLOW_DEMO_UPGRADE`. Charging money in India requires a payment gateway, a
+> registered business, KYC and GST. Going live means replacing one handler with
+> a Razorpay webhook that sets the same column — nothing else changes.
+
+---
+
 ## Tech stack
 
 - **TanStack Start** (React 19 SSR) + TypeScript
@@ -140,7 +167,7 @@ Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.googl
 
 ## Deployment
 
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for Railway setup and scale notes.
+Free hosting on **Neon + Render** — see **[DEPLOYMENT.md](./DEPLOYMENT.md)**.
 
 ## Architecture
 
@@ -150,7 +177,8 @@ src/
     db.server.ts          Postgres pool, migrations, session cleanup
     auth.server.ts        scrypt hashing, session tokens, cookies
     rate-limit.server.ts  Sliding-window limiter
-    handler.server.ts     API error boundary
+    handler.server.ts     API error boundary + CSRF
+    plans.server.ts       freemium limits and quota enforcement
   routes/api/
     auth/                 signup, login, logout, me
     expenses.ts           keyset-paginated list, bulk insert, clear
@@ -158,7 +186,8 @@ src/
     stats.ts              SQL-aggregated dashboard totals
     receipt.ts            vision-based receipt extraction
     chat.ts               AI assistant (auth-gated, rate limited)
-    health.ts             Railway healthcheck
+    billing.ts            plans, usage, plan switching
+    health.ts             healthcheck
   lib/
     api.ts                Browser API client
     expense-parser.ts     Natural-language expense parsing
@@ -182,6 +211,16 @@ capped at 500 rows per request with client-side chunking, one transaction each.
   user cannot touch another's rows even by guessing IDs
 - All SQL uses bound parameters — no string interpolation anywhere
 - Account deletion cascades to every table
+- **CSRF**: every state-changing route checks `Sec-Fetch-Site`, with an
+  Origin/Host comparison as fallback — TanStack's built-in middleware only
+  covers server functions, not REST routes
+- **Rate-limit integrity**: client IP is read from the *right* of
+  `X-Forwarded-For` by `TRUSTED_PROXY_HOPS`. Reading the leftmost entry (the
+  obvious approach) lets an attacker rotate a fake IP per request and bypass
+  brute-force protection entirely
+- **Database TLS** is verified against the public CA store on Neon and Supabase,
+  or a pinned CA via `DATABASE_CA_CERT`. Where neither applies the app falls back
+  to encrypted-but-unverified and logs a warning rather than failing silently
 
 ## Notes on the illustrations
 

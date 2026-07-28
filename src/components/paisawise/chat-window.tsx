@@ -55,6 +55,8 @@ function messageText(message: UIMessage): string {
 export function ChatWindow() {
   const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null);
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
+  // Bumped after any metered action so the usage meter re-reads its quotas.
+  const [usageKey, setUsageKey] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const seenIds = useRef(new Set<string>());
   const pendingSkip = useRef<boolean[]>([]);
@@ -83,6 +85,7 @@ export function ChatWindow() {
 
   const refreshStats = useCallback(() => {
     getStats().then(setStats);
+    setUsageKey((k) => k + 1);
   }, []);
 
   // Debounced transcript save — avoids a write on every streamed token.
@@ -280,6 +283,7 @@ export function ChatWindow() {
         stats={stats}
         onReset={resetLedger}
         onDataChanged={refreshStats}
+        usageKey={usageKey}
       />
     </div>
   );

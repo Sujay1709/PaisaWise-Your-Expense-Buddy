@@ -42,3 +42,5 @@ dist3/
 sqltest.mjs
 dist4/
 sqltest2.mjs
+dist5/
+sqltest3.mjs

@@ -5,6 +5,7 @@ import { apiRoute } from "@/server/handler.server";
 import { createAIProvider, getModelId } from "@/lib/ai-gateway.server";
 import { json, requireUser, unauthorized } from "@/server/auth.server";
 import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
+import { checkReceiptQuota, quotaResponse, recordUsage } from "@/server/plans.server";
 
 const CATEGORIES = [
   "Food", "Travel", "Education", "Entertainment", "Shopping", "Bills", "Other",
@@ -52,6 +53,10 @@ export const Route = createFileRoute("/api/receipt")({
         const limit = rateLimit(`receipt:${user.id}`, 15, 600_000);
         if (!limit.allowed) return tooManyRequests(limit.retryAfterSeconds);
 
+        // Vision calls are the most expensive operation — cap them on Free.
+        const overQuota = await checkReceiptQuota(user.id, user.plan);
+        if (overQuota) return quotaResponse(overQuota);
+
         if (!process.env.AI_API_KEY) {
           return json(
             { error: "Receipt scanning is unavailable.", hint: "AI_API_KEY is not set." },
@@ -83,6 +88,7 @@ export const Route = createFileRoute("/api/receipt")({
         }
 
         const provider = createAIProvider();
+        await recordUsage(user.id, "receipt_scan");
 
         let raw: string;
         try {

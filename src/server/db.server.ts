@@ -17,14 +17,21 @@ let pool: Pool | null = null;
 let migrationPromise: Promise<void> | null = null;
 
 /**
- * Decides whether to use TLS.
+ * Decides how to use TLS.
  *
- * Hosted Postgres (Railway, Neon, Supabase) requires TLS but presents a
- * certificate chain Node will not verify by default, so we accept it without
- * verification. Local Postgres usually has TLS off entirely — forcing it there
- * fails with "The server does not support SSL connections".
+ * SECURITY: `rejectUnauthorized: false` encrypts the connection but does NOT
+ * authenticate the server, so anything on the network path can present its own
+ * certificate and read every query — credentials and user financial data
+ * included. That is acceptable only on a provider's private network.
  *
- * Put `?sslmode=disable` in the URL to opt out explicitly.
+ * Preference order:
+ *   1. DATABASE_CA_CERT set  -> verify against that CA (fully secure)
+ *   2. Neon / Supabase       -> verify against the public CA store; both use
+ *                               publicly trusted certificates
+ *   3. Local Postgres        -> no TLS (usually not enabled locally)
+ *   4. Anything else         -> encrypt without verification, and warn loudly
+ *
+ * Override with `?sslmode=disable` or `?sslmode=no-verify` in the URL.
  */
 function resolveSsl(connectionString: string) {
   if (/[?&]sslmode=disable/.test(connectionString)) return undefined;
@@ -34,6 +41,30 @@ function resolveSsl(connectionString: string) {
   );
   if (isLocal) return undefined;
 
+  // 1. Explicit CA — the correct configuration for any provider.
+  const ca = process.env.DATABASE_CA_CERT;
+  if (ca) {
+    return { rejectUnauthorized: true, ca: ca.replace(/\\n/g, "\n") };
+  }
+
+  const forcedNoVerify = /[?&]sslmode=no-verify/.test(connectionString);
+
+  // 2. Providers that use publicly trusted certificates verify normally.
+  const publiclyTrusted = /@[^/]*\.(neon\.tech|supabase\.co|aws\.neon\.build)/.test(
+    connectionString,
+  );
+  if (publiclyTrusted && !forcedNoVerify) {
+    return { rejectUnauthorized: true };
+  }
+
+  // 3. Fallback: encrypted but unverified. Say so out loud.
+  if (!forcedNoVerify) {
+    console.warn(
+      "[db] TLS certificate verification is DISABLED for this host. The " +
+        "connection is encrypted but not authenticated. Set DATABASE_CA_CERT " +
+        "to your provider's CA certificate to close this gap.",
+    );
+  }
   return { rejectUnauthorized: false };
 }
 
@@ -147,6 +178,25 @@ CREATE TABLE IF NOT EXISTS user_chats (
   messages   jsonb NOT NULL DEFAULT '[]'::jsonb,
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- ── Billing ────────────────────────────────────────────────────
+-- Added in 3.2.0. ALTER ... IF NOT EXISTS keeps this safe to re-run
+-- against a database created by an earlier version.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan text NOT NULL DEFAULT 'free';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_since timestamptz;
+
+-- Metered actions that are not rows in another table (AI calls, receipt
+-- scans). Expense counts come from the expenses table directly.
+CREATE TABLE IF NOT EXISTS usage_events (
+  id          bigserial PRIMARY KEY,
+  user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind        text NOT NULL,
+  occurred_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Quota checks always filter user + kind + time window.
+CREATE INDEX IF NOT EXISTS usage_user_kind_time_idx
+  ON usage_events (user_id, kind, occurred_at DESC);
 `;
 
 export function ensureMigrated(): Promise<void> {

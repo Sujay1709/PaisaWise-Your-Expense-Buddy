@@ -26,6 +26,7 @@ import { CATEGORY_EMOJI, formatRupees, type PwCategory } from "@/lib/paisawise-s
 import { Button } from "@/components/ui/button";
 import type { Stats } from "@/lib/api";
 import { ExpenseHistory } from "@/components/paisawise/expense-history";
+import { UsageMeter } from "@/components/paisawise/usage-meter";
 
 /** Category emoji lookup that tolerates unknown categories from the server. */
 function emojiFor(category: string): string {
@@ -100,10 +101,12 @@ export function SpendDashboard({
   stats,
   onReset,
   onDataChanged,
+  usageKey,
 }: {
   stats: Stats;
   onReset: () => void;
   onDataChanged: () => void;
+  usageKey: number;
 }) {
   const [tab, setTab] = useState<"dashboard" | "history">("dashboard");
   const [view, setView] = useState<"bar" | "pie">("bar");
@@ -340,6 +343,9 @@ export function SpendDashboard({
           )}
         </>
       )}
+
+      {/* Plan usage */}
+      <UsageMeter refreshKey={usageKey} />
 
       {/* Monthly AI Insights */}
       <div className="border-t pt-4">

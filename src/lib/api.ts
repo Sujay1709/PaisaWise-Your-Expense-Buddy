@@ -6,6 +6,8 @@
  * page scripts to read or leak.
  */
 
+export type PlanId = "free" | "pro";
+
 export type AuthUser = {
   id: string;
   email: string;
@@ -14,6 +16,27 @@ export type AuthUser = {
   gender: string;
   avatarColor: string;
   createdAt: string;
+  plan: PlanId;
+};
+
+export type PlanLimits = {
+  expensesPerMonth: number | null;
+  aiChatsPerDay: number | null;
+  receiptScansPerMonth: number | null;
+  monthlyInsights: boolean;
+  historyDays: number | null;
+};
+
+export type BillingInfo = {
+  plan: PlanId;
+  plans: Record<PlanId, { name: string; price: string; limits: PlanLimits }>;
+  usage: {
+    expensesThisMonth: number;
+    aiChatsToday: number;
+    receiptScansThisMonth: number;
+  };
+  limits: PlanLimits;
+  demoMode: boolean;
 };
 
 export type ExpenseEntry = {
@@ -243,6 +266,24 @@ export function scanReceipt(imageDataUrl: string) {
     method: "POST",
     body: JSON.stringify({ image: imageDataUrl }),
   });
+}
+
+// ─── Billing ────────────────────────────────────────────────────
+
+export function getBilling() {
+  return request<BillingInfo>("/api/billing");
+}
+
+export function setPlan(plan: PlanId) {
+  return request<{ ok: true; plan: PlanId; demo: boolean }>("/api/billing", {
+    method: "POST",
+    body: JSON.stringify({ plan }),
+  });
+}
+
+/** True when a failed request was a quota block (HTTP 402) rather than an error. */
+export function isQuotaError(message: string): boolean {
+  return /You've used all|Upgrade to Pro/.test(message);
 }
 
 export async function getStats(): Promise<Stats> {
