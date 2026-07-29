@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import type { Stats } from "@/lib/api";
 import { ExpenseHistory } from "@/components/paisawise/expense-history";
 import { UsageMeter } from "@/components/paisawise/usage-meter";
+import { AddExpenseForm } from "@/components/paisawise/add-expense-form";
 
 /** Category emoji lookup that tolerates unknown categories from the server. */
 function emojiFor(category: string): string {
@@ -43,6 +44,8 @@ const CHART_COLORS = [
   "#fb923c", // orange
 ];
 
+type Tab = "add" | "dashboard" | "history";
+
 type MonthlyInsight = {
   leaks: string[];
   tips: string[];
@@ -54,35 +57,27 @@ function SidebarHeader({
   onTab,
   onReset,
 }: {
-  tab: "dashboard" | "history";
-  onTab: (t: "dashboard" | "history") => void;
+  tab: Tab;
+  onTab: (t: Tab) => void;
   onReset: () => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex gap-1 rounded-lg bg-secondary p-0.5">
-        <button
-          type="button"
-          onClick={() => onTab("dashboard")}
-          className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-            tab === "dashboard"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Dashboard
-        </button>
-        <button
-          type="button"
-          onClick={() => onTab("history")}
-          className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-            tab === "history"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          History
-        </button>
+        {(["add", "dashboard", "history"] as const).map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onTab(id)}
+            className={`rounded-md px-2.5 py-1 text-xs font-semibold capitalize transition-colors ${
+              tab === id
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {id}
+          </button>
+        ))}
       </div>
       <Button
         variant="ghost"
@@ -108,8 +103,7 @@ export function SpendDashboard({
   onDataChanged: () => void;
   usageKey: number;
 }) {
-  const [tab, setTab] = useState<"dashboard" | "history">("dashboard");
-  const [view, setView] = useState<"bar" | "pie">("bar");
+  const [tab, setTab] = useState<Tab>("dashboard");
   const [insight, setInsight] = useState<MonthlyInsight | null>(null);
   const [insightLoading, setInsightLoading] = useState(false);
 
@@ -176,6 +170,20 @@ export function SpendDashboard({
     }
   }, [stats]);
 
+  if (tab === "add") {
+    return (
+      <aside className="flex h-full flex-col gap-4 overflow-y-auto rounded-2xl border bg-card p-5">
+        <SidebarHeader tab={tab} onTab={setTab} onReset={onReset} />
+        <AddExpenseForm
+          onAdded={() => {
+            onDataChanged();
+            setTab("dashboard");
+          }}
+        />
+      </aside>
+    );
+  }
+
   if (tab === "history") {
     return (
       <aside className="flex h-full flex-col gap-4 overflow-y-auto rounded-2xl border bg-card p-5">
@@ -237,45 +245,55 @@ export function SpendDashboard({
         </div>
       )}
 
-      {/* Chart toggle + charts */}
+      {/* By category — list, then both charts together */}
       {stats.byCategory.length === 0 ? (
         <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
           Log your first expense and your category breakdown builds up here.
         </p>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={view === "bar" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setView("bar")}
-              className="h-7 gap-1 px-2 text-xs"
-            >
-              <BarChart3 className="size-3" /> Bar
-            </Button>
-            <Button
-              variant={view === "pie" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setView("pie")}
-              className="h-7 gap-1 px-2 text-xs"
-            >
-              <PieChartIcon className="size-3" /> Pie
-            </Button>
+          <div>
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              By category
+            </h3>
+            <div className="space-y-2">
+              {stats.byCategory.map((row, i) => (
+                <div key={row.category}>
+                  <div className="flex items-baseline justify-between text-sm">
+                    <span className="font-medium">
+                      <span aria-hidden>{emojiFor(row.category)}</span> {row.category}
+                    </span>
+                    <span className="tabular-nums">
+                      <span className="font-semibold">{formatRupees(row.amount)}</span>
+                      <span className="ml-1.5 text-xs text-muted-foreground">{row.pct}%</span>
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.max(3, row.pct)}%`,
+                        backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {view === "bar" ? (
-            <div className="h-48">
+          <div>
+            <h3 className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <BarChart3 className="size-3.5" /> Spend by category
+            </h3>
+            <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 8 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="shortName" width={72} tick={{ fontSize: 11 }} />
                   <Tooltip
                     formatter={(value: number) => [formatRupees(value), "Spent"]}
-                    contentStyle={{
-                      borderRadius: 8,
-                      fontSize: 12,
-                      border: "1px solid #e5e7eb",
-                    }}
+                    contentStyle={{ borderRadius: 8, fontSize: 12 }}
                   />
                   <Bar dataKey="amount" radius={[0, 6, 6, 0]}>
                     {chartData.map((_, i) => (
@@ -285,7 +303,12 @@ export function SpendDashboard({
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          ) : (
+          </div>
+
+          <div>
+            <h3 className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <PieChartIcon className="size-3.5" /> Share of spend
+            </h3>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -295,10 +318,10 @@ export function SpendDashboard({
                     nameKey="shortName"
                     cx="50%"
                     cy="50%"
-                    outerRadius={70}
-                    innerRadius={35}
+                    outerRadius={68}
+                    innerRadius={34}
                     paddingAngle={2}
-                    label={({ shortName, pct }) => `${shortName} ${pct}%`}
+                    label={({ pct }) => `${pct}%`}
                     labelLine={false}
                     style={{ fontSize: 10 }}
                   >
@@ -314,16 +337,12 @@ export function SpendDashboard({
                   />
                   <Tooltip
                     formatter={(value: number) => [formatRupees(value), "Spent"]}
-                    contentStyle={{
-                      borderRadius: 8,
-                      fontSize: 12,
-                      border: "1px solid #e5e7eb",
-                    }}
+                    contentStyle={{ borderRadius: 8, fontSize: 12 }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          )}
+          </div>
         </>
       )}
 

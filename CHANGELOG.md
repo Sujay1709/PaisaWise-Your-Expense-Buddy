@@ -2,6 +2,121 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.4.0] — 2026-07-28 — Accounts, budgets, custom categories, recurring, PWA
+
+Feature concepts studied from the Paisa Flutter expense manager
+(github.com/codezinfinity/Paisa). That project is **GPLv3** and this one is MIT,
+so no code was copied — these are independent implementations against our own
+schema.
+
+### Added — accounts
+- `accounts` table (cash / bank / upi / card / wallet) and `expenses.account_id`.
+  Every expense can now record where the money came from.
+- Balances are computed in SQL as income minus expenses rather than stored, so
+  they cannot drift from the transactions they summarise.
+- `ON DELETE SET NULL` on the expense link: deleting an account never deletes
+  its history.
+- Account ownership is re-verified server-side on every write, so a forged id
+  cannot attach an expense to another user's account.
+
+### Added — budgets
+- `budgets` table with one monthly cap per category, upserted case-insensitively.
+- Progress is computed with a `LEFT JOIN LATERAL` against this month's spend —
+  one round trip, one row per budget, regardless of expense volume.
+- Complements the existing leak detection: budgets warn before overspend,
+  leak detection reports after.
+
+### Added — custom categories
+- `categories` table with per-user names, emoji and colour, seeded with the
+  original seven on signup.
+- **`expenses.category` deliberately stays TEXT rather than becoming a foreign
+  key.** The AI parser and receipt scanner emit category *names*, and keeping
+  the value denormalised means renaming or deleting a category never rewrites
+  or orphans historical expenses.
+- Built-in categories cannot be deleted.
+
+### Added — recurring transactions
+- `recurring` table with daily / weekly / monthly cadence.
+- **Catch-up runs on app load, not on a cron** — Render's free tier has no
+  scheduler. Due rules are materialised when the user opens the app.
+- Idempotent by construction: rules are selected only while
+  `next_run <= CURRENT_DATE`, and the same transaction advances `next_run` past
+  today. `FOR UPDATE SKIP LOCKED` prevents concurrent requests double-posting.
+- Catch-up is capped at 12 entries per rule. Verified: a rule dormant for five
+  years on a daily cadence produces 12 rows, not 1,800.
+
+### Added — installable PWA
+- `manifest.webmanifest` with standalone display, maskable icons and an
+  "Add expense" shortcut. Generated 192/512 icons plus an Apple touch icon.
+- Service worker with a deliberately conservative strategy: **API responses are
+  never cached**, because showing a stale balance as if it were current is worse
+  than showing nothing. Hashed build assets are cache-first; navigations are
+  network-first with an offline fallback page.
+- iOS meta tags so Safari can install it to the home screen.
+
+### Verified
+12 SQL assertions against a real Postgres engine: schema applies, duplicate
+account names blocked case-insensitively, balances compute correctly
+(₹5000 − ₹700 = ₹4300), cross-user account access denied, deleting an account
+preserves expenses while nulling the link, budget/spend LATERAL join, budget
+upsert, a three-month-overdue rule catching up, re-running producing nothing,
+`next_run` advancing, the runaway guard capping at 12, and full cascade on
+account deletion. Plus clean typecheck, successful build, and all six PWA assets
+serving with correct content types.
+
+## [3.3.0] — 2026-07-28 — Dark mode + manual expense entry
+
+### Added
+- **Dark mode toggle** in both the app and landing headers. The `.dark` token
+  set already existed in `styles.css` but nothing switched it. Choice persists
+  to localStorage and falls back to the OS preference. A blocking script in
+  `<head>` applies the theme before first paint — doing it in a React effect
+  would flash white on every load for dark-mode users.
+- **Manual Add Expense form** — title, amount, date, a toggle button per
+  category (no dropdown), optional note, and an expense/income switch. Lives in
+  a new "Add" tab beside Dashboard and History. Category and date persist
+  between submissions since people log several in a row.
+- **Custom dates on expenses.** `POST /api/expenses` now accepts `occurredAt`.
+  Validated server-side: unparseable values, future dates and pre-2000 dates are
+  rejected, because a bad date would silently land the expense outside the
+  current month and corrupt both the monthly totals and the quota count.
+
+### Changed
+- **Dashboard shows the category list and both charts together** instead of a
+  bar/pie toggle. Category rows show amount, percentage and a colour-matched
+  progress bar; the bar chart and donut follow, sharing the same colour scale.
+
+### Fixed
+- **README pointed at a stranger's deployment.** The placeholder
+  `paisawise.onrender.com` resolves to an unrelated project. Replaced with a
+  note and a commented template until the real Render URL exists.
+
+### Verified
+9 SQL assertions against a real Postgres engine covering the new date column:
+mixed explicit/null dates in one bulk insert, explicit dates honoured, null
+defaulting to `now()`, backdated expenses correctly excluded from the monthly
+quota, and all four date-validation rejection paths. Plus clean typecheck,
+successful build, and confirmation that the theme script and toggle render in
+the SSR output.
+
+## [3.2.2] — 2026-07-28 — Fix Render build failure
+
+### Fixed
+- **`npm ci` failed on Render with ERESOLVE.** An earlier
+  `npm install --legacy-peer-deps` had bumped `eslint` to `^10.8.0`, which
+  `eslint-plugin-react-hooks@5.2.0` does not support (it peers on `eslint ^9`).
+  Local installs kept passing because they reused that flag; `npm ci` resolves
+  strictly and rejected it. Pinned `eslint` to `^9.39.5` and regenerated
+  `package-lock.json` with a strict install.
+- **Node version was unpinned.** `engines` said `>=20`, so Render selected
+  Node 26.5.0 — far newer than anything this was tested on. Pinned to `22.x`
+  in `engines` and `NODE_VERSION` in `render.yaml`.
+
+### Verified
+`npm ci` runs clean from the regenerated lockfile in an isolated directory (the
+exact command Render runs), then lint (0 errors), typecheck, build, and a
+runtime check of the built server all pass on Node 22.
+
 ## [3.2.1] — 2026-07-28
 
 ### Added

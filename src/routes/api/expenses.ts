@@ -6,6 +6,7 @@ import { query, transaction } from "@/server/db.server";
 import { json, requireUser, unauthorized } from "@/server/auth.server";
 import { rateLimit, tooManyRequests } from "@/server/rate-limit.server";
 import { checkExpenseQuota, quotaResponse } from "@/server/plans.server";
+import { ownedAccountId } from "@/server/ledger.server";
 
 const CATEGORIES = new Set([
   "Food",
@@ -27,7 +28,30 @@ type IncomingEntry = {
   merchant?: unknown;
   note?: unknown;
   type?: unknown;
+  occurredAt?: unknown;
+  accountId?: unknown;
 };
+
+/**
+ * Validates a client-supplied date.
+ *
+ * Rejects unparseable values, anything in the future, and anything before
+ * 2000 — a bad date would silently land the expense outside the current
+ * month and quietly corrupt the monthly totals and quota counts.
+ */
+function parseOccurredAt(value: unknown): Date | null {
+  if (value === undefined || value === null || value === "") return null;
+
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return null;
+
+  const now = Date.now();
+  // Allow a day of slack for timezone differences between client and server.
+  if (date.getTime() > now + 86_400_000) return null;
+  if (date.getFullYear() < 2000) return null;
+
+  return date;
+}
 
 export const Route = createFileRoute("/api/expenses")({
   server: {
@@ -130,6 +154,8 @@ export const Route = createFileRoute("/api/expenses")({
           merchant: string | null;
           note: string;
           kind: string;
+          occurredAt: Date | null;
+          accountId: string | null;
         }[] = [];
 
         for (const raw of body.entries as IncomingEntry[]) {
@@ -148,10 +174,19 @@ export const Route = createFileRoute("/api/expenses")({
             merchant: merchantRaw || null,
             note,
             kind,
+            occurredAt: parseOccurredAt(raw.occurredAt),
+            // Resolved below — ownership must be verified against the DB.
+            accountId: null,
           });
         }
 
         if (clean.length === 0) return json({ inserted: 0 });
+
+        // All entries in one request share an account. Verified against the
+        // DB so a forged id cannot attach an expense to someone else's account.
+        const bodyAccountId = (body as { accountId?: unknown }).accountId;
+        const resolvedAccount = await ownedAccountId(user.id, bodyAccountId);
+        for (const entry of clean) entry.accountId = resolvedAccount;
 
         // Free plan caps expenses per calendar month.
         const overQuota = await checkExpenseQuota(user.id, user.plan, clean.length);
@@ -160,9 +195,17 @@ export const Route = createFileRoute("/api/expenses")({
         // Build a single multi-row INSERT with bound parameters.
         const values: unknown[] = [];
         const tuples = clean.map((entry, i) => {
-          const base = i * 5;
-          values.push(entry.amount, entry.category, entry.merchant, entry.note, entry.kind);
-          return `($${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`;
+          const base = i * 7;
+          values.push(
+            entry.amount,
+            entry.category,
+            entry.merchant,
+            entry.note,
+            entry.kind,
+            entry.occurredAt,
+            entry.accountId,
+          );
+          return `($${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8})`;
         });
 
         // Explicit casts are required: Postgres cannot infer parameter types
@@ -170,15 +213,18 @@ export const Route = createFileRoute("/api/expenses")({
         // fails against the numeric `amount` column.
         await transaction(async (client) => {
           await client.query(
-            `INSERT INTO expenses (user_id, amount, category, merchant, note, kind)
+            `INSERT INTO expenses
+               (user_id, amount, category, merchant, note, kind, occurred_at, account_id)
              SELECT $1::uuid,
                     v.amount::numeric,
                     v.category::text,
                     v.merchant::text,
                     v.note::text,
-                    v.kind::text
+                    v.kind::text,
+                    COALESCE(v.occurred_at::timestamptz, now()),
+                    v.account_id::bigint
                FROM (VALUES ${tuples.join(", ")})
-                 AS v(amount, category, merchant, note, kind)`,
+                 AS v(amount, category, merchant, note, kind, occurred_at, account_id)`,
             [user.id, ...values],
           );
         });

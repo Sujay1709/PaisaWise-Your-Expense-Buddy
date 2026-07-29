@@ -152,7 +152,7 @@ const BATCH_SIZE = 500;
  * per-request cap. Chunks run sequentially to avoid hammering the pool.
  */
 export async function addExpenses(
-  entries: Omit<ExpenseEntry, "id" | "occurredAt">[],
+  entries: (Omit<ExpenseEntry, "id" | "occurredAt"> & { occurredAt?: string })[],
 ): Promise<Result<{ inserted: number }>> {
   let inserted = 0;
 

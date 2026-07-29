@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 import { PaisaWiseWordmark } from "@/components/paisawise/brand";
 import { UserMenu } from "@/components/paisawise/user-menu";
+import { ThemeToggle } from "@/components/paisawise/theme-toggle";
 import { Toaster } from "@/components/ui/sonner";
 import { getCurrentUser, signOut, type AuthUser } from "@/lib/api";
 
@@ -61,7 +62,10 @@ function AppPage() {
     <div className="flex h-svh flex-col pw-grain">
       <header className="flex items-center justify-between gap-3 px-4 py-3">
         <PaisaWiseWordmark markSize={28} eager />
-        <UserMenu user={user} onUserChange={setUser} onSignOut={handleSignOut} />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <UserMenu user={user} onUserChange={setUser} onSignOut={handleSignOut} />
+        </div>
       </header>
       <Suspense fallback={<ChatFallback />}>
         <ChatWindow />

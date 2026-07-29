@@ -8,9 +8,16 @@ Type your spending the way you'd text a friend. Or just photograph the bill.
 
 Built by **Sujay Gopal**
 
-### [🔗 Live demo](https://paisawise.onrender.com)
+<!--
+  Paste your real Render URL below once the service is live, then delete this
+  comment. Do NOT use paisawise.onrender.com — that subdomain belongs to an
+  unrelated project.
 
-*Hosted on a free tier — the first load after inactivity takes ~60s while the server wakes.*
+  ### [🔗 Live demo](https://YOUR-SERVICE.onrender.com)
+  *Hosted on a free tier — the first load after inactivity takes ~60s while the server wakes.*
+-->
+
+*Live demo link coming once the Render deploy completes.*
 
 </div>
 

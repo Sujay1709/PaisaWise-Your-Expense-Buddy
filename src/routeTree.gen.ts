@@ -18,6 +18,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiChatHistoryRouteImport } from './routes/api/chat-history'
 import { Route as ApiExpensesRouteImport } from './routes/api/expenses'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiLedgerRouteImport } from './routes/api/ledger'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
 import { Route as ApiReceiptRouteImport } from './routes/api/receipt'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
@@ -72,6 +73,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLedgerRoute = ApiLedgerRouteImport.update({
+  id: '/api/ledger',
+  path: '/api/ledger',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiProfileRoute = ApiProfileRouteImport.update({
   id: '/api/profile',
   path: '/api/profile',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/api/chat-history': typeof ApiChatHistoryRoute
   '/api/expenses': typeof ApiExpensesRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/ledger': typeof ApiLedgerRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/receipt': typeof ApiReceiptRoute
   '/api/stats': typeof ApiStatsRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/api/chat-history': typeof ApiChatHistoryRoute
   '/api/expenses': typeof ApiExpensesRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/ledger': typeof ApiLedgerRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/receipt': typeof ApiReceiptRoute
   '/api/stats': typeof ApiStatsRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/api/chat-history': typeof ApiChatHistoryRoute
   '/api/expenses': typeof ApiExpensesRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/ledger': typeof ApiLedgerRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/receipt': typeof ApiReceiptRoute
   '/api/stats': typeof ApiStatsRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/api/chat-history'
     | '/api/expenses'
     | '/api/health'
+    | '/api/ledger'
     | '/api/profile'
     | '/api/receipt'
     | '/api/stats'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/chat-history'
     | '/api/expenses'
     | '/api/health'
+    | '/api/ledger'
     | '/api/profile'
     | '/api/receipt'
     | '/api/stats'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/api/chat-history'
     | '/api/expenses'
     | '/api/health'
+    | '/api/ledger'
     | '/api/profile'
     | '/api/receipt'
     | '/api/stats'
@@ -241,6 +253,7 @@ export interface RootRouteChildren {
   ApiChatHistoryRoute: typeof ApiChatHistoryRoute
   ApiExpensesRoute: typeof ApiExpensesRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiLedgerRoute: typeof ApiLedgerRoute
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReceiptRoute: typeof ApiReceiptRoute
   ApiStatsRoute: typeof ApiStatsRoute
@@ -313,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ledger': {
+      id: '/api/ledger'
+      path: '/api/ledger'
+      fullPath: '/api/ledger'
+      preLoaderRoute: typeof ApiLedgerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/profile': {
@@ -396,6 +416,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatHistoryRoute: ApiChatHistoryRoute,
   ApiExpensesRoute: ApiExpensesRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
+  ApiLedgerRoute: ApiLedgerRoute,
   ApiProfileRoute: ApiProfileRoute,
   ApiReceiptRoute: ApiReceiptRoute,
   ApiStatsRoute: ApiStatsRoute,

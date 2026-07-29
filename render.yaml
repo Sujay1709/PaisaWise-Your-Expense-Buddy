@@ -15,7 +15,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: "20"
+        value: "22"
       # Render sits behind one proxy; the real client IP is the last
       # X-Forwarded-For entry. See rate-limit.server.ts.
       - key: TRUSTED_PROXY_HOPS

@@ -5,6 +5,7 @@ import { apiRoute } from "@/server/handler.server";
 import { query } from "@/server/db.server";
 import { createSession, hashPassword, json, sessionCookie } from "@/server/auth.server";
 import { clientIp, rateLimit, tooManyRequests } from "@/server/rate-limit.server";
+import { seedDefaults } from "@/server/ledger.server";
 
 const AVATAR_COLORS = [
   "#e8a838",
@@ -73,6 +74,9 @@ export const Route = createFileRoute("/api/auth/signup")({
           }
           throw error;
         }
+
+        // Starter accounts (Cash/Bank/UPI) and the seven default categories.
+        await seedDefaults(userId);
 
         const token = await createSession(userId);
         return json({ ok: true }, { headers: { "set-cookie": sessionCookie(token) } });

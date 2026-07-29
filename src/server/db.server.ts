@@ -192,6 +192,79 @@ CREATE TABLE IF NOT EXISTS usage_events (
 -- Quota checks always filter user + kind + time window.
 CREATE INDEX IF NOT EXISTS usage_user_kind_time_idx
   ON usage_events (user_id, kind, occurred_at DESC);
+
+-- ── Accounts ───────────────────────────────────────────────────
+-- Where the money came from: cash, bank, a UPI wallet, a card.
+CREATE TABLE IF NOT EXISTS accounts (
+  id         bigserial PRIMARY KEY,
+  user_id    uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       text NOT NULL,
+  kind       text NOT NULL DEFAULT 'cash'
+             CHECK (kind IN ('cash','bank','upi','card','wallet')),
+  color      text NOT NULL DEFAULT '#e8a838',
+  archived   boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS accounts_user_idx ON accounts (user_id, archived);
+CREATE UNIQUE INDEX IF NOT EXISTS accounts_user_name_key
+  ON accounts (user_id, lower(name));
+
+-- Deleting an account must not delete its history, so SET NULL, not CASCADE.
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account_id bigint
+  REFERENCES accounts(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS expenses_user_account_idx ON expenses (user_id, account_id);
+
+-- ── Custom categories ──────────────────────────────────────────
+-- expenses.category stays TEXT rather than becoming a foreign key. The AI
+-- parser and receipt scanner emit category *names*, and denormalising means
+-- renaming or deleting a category never orphans or rewrites history.
+CREATE TABLE IF NOT EXISTS categories (
+  id         bigserial PRIMARY KEY,
+  user_id    uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       text NOT NULL,
+  emoji      text NOT NULL DEFAULT '📦',
+  color      text NOT NULL DEFAULT '#e8a838',
+  is_default boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS categories_user_name_key
+  ON categories (user_id, lower(name));
+
+-- ── Budgets ────────────────────────────────────────────────────
+-- One monthly cap per category. Proactive, unlike leak detection which
+-- only tells you after the money is gone.
+CREATE TABLE IF NOT EXISTS budgets (
+  id         bigserial PRIMARY KEY,
+  user_id    uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category   text NOT NULL,
+  amount     numeric(12,2) NOT NULL CHECK (amount > 0),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS budgets_user_category_key
+  ON budgets (user_id, lower(category));
+
+-- ── Recurring transactions ─────────────────────────────────────
+-- Rent, hostel fees, subscriptions. next_run is a DATE so catch-up is
+-- idempotent: a row is only materialised once per due date.
+CREATE TABLE IF NOT EXISTS recurring (
+  id         bigserial PRIMARY KEY,
+  user_id    uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  amount     numeric(12,2) NOT NULL CHECK (amount > 0),
+  category   text NOT NULL,
+  merchant   text,
+  note       text NOT NULL DEFAULT '',
+  kind       text NOT NULL DEFAULT 'expense'
+             CHECK (kind IN ('expense','income')),
+  account_id bigint REFERENCES accounts(id) ON DELETE SET NULL,
+  cadence    text NOT NULL CHECK (cadence IN ('daily','weekly','monthly')),
+  next_run   date NOT NULL,
+  active     boolean NOT NULL DEFAULT true,
+  last_run   date,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS recurring_due_idx
+  ON recurring (user_id, active, next_run);
 `;
 
 export function ensureMigrated(): Promise<void> {

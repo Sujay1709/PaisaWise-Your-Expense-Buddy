@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { PaisaWiseMark, PaisaWiseWordmark } from "@/components/paisawise/brand";
+import { ThemeToggle } from "@/components/paisawise/theme-toggle";
 import {
   Accordion,
   AccordionContent,
@@ -189,6 +190,7 @@ function Landing() {
           >
             FAQ
           </a>
+          <ThemeToggle />
           <Button asChild size="sm">
             <Link to="/auth">Sign in</Link>
           </Button>
