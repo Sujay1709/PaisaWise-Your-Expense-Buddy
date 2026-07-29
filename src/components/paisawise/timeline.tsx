@@ -19,11 +19,14 @@ type Timeline = {
   byCategory: { category: string; amount: number; pct: number }[];
 };
 
+// Labels are single tokens with a fixed width so the toggle never wraps in a
+// narrow sidebar. "5 days" was breaking across two lines and pushing the whole
+// strip below the header.
 const RANGES: { id: RangeId; label: string }[] = [
-  { id: "day", label: "Today" },
-  { id: "5day", label: "5 days" },
-  { id: "week", label: "Week" },
-  { id: "month", label: "Month" },
+  { id: "day", label: "1D" },
+  { id: "5day", label: "5D" },
+  { id: "week", label: "1W" },
+  { id: "month", label: "1M" },
 ];
 
 function shortDay(iso: string, range: RangeId): string {
@@ -70,18 +73,20 @@ export function Timeline({ refreshKey }: { refreshKey: number }) {
   return (
     <div className="rounded-2xl border bg-card p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-1.5 font-display text-sm font-bold uppercase tracking-widest text-muted-foreground">
-          <CalendarClock className="size-3.5" />
-          Timeline
+        <h2 className="flex min-w-0 items-center gap-1.5 font-display text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          <CalendarClock className="size-3.5 shrink-0" />
+          <span className="truncate">Timeline</span>
         </h2>
-        <div className="flex gap-0.5 rounded-lg bg-secondary p-0.5">
+        {/* shrink-0 keeps the toggle at its natural width; whitespace-nowrap
+            stops any individual chip breaking across two lines. */}
+        <div className="flex shrink-0 gap-0.5 rounded-lg bg-secondary p-0.5">
           {RANGES.map((r) => (
             <button
               key={r.id}
               type="button"
               onClick={() => setRange(r.id)}
               aria-pressed={range === r.id}
-              className={`rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+              className={`w-9 rounded-md px-0 py-1 text-[11px] font-semibold whitespace-nowrap tabular-nums transition-colors ${
                 range === r.id
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

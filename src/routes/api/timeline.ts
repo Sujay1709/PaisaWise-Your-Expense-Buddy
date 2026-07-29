@@ -78,31 +78,30 @@ export const Route = createFileRoute("/api/timeline")({
             total: string;
             income: string;
             count: string;
-            avg_day: string;
             peak_day: Date | null;
             peak: string;
           }>(
-            `WITH daily AS (
-               SELECT date_trunc('day', occurred_at) AS day,
-                      SUM(amount) FILTER (WHERE kind = 'expense') AS spent
+            // Single window scan, then two aggregations off the CTE.
+            // avg-per-day is calculated in JS (total / days) so it divides by
+            // the full window length rather than only active days.
+            `WITH win AS (
+               SELECT amount, kind, date_trunc('day', occurred_at) AS bucket_day
                  FROM expenses
                 WHERE user_id = $1
                   AND occurred_at >= date_trunc('day', now()) - ($2::int - 1) * interval '1 day'
-                GROUP BY 1
+             ),
+             daily AS (
+               SELECT bucket_day,
+                      SUM(amount) FILTER (WHERE kind = 'expense') AS spent
+                 FROM win GROUP BY bucket_day
              )
              SELECT
-               COALESCE((SELECT SUM(amount)::text FROM expenses
-                          WHERE user_id = $1 AND kind = 'expense'
-                            AND occurred_at >= date_trunc('day', now()) - ($2::int - 1) * interval '1 day'), '0') AS total,
-               COALESCE((SELECT SUM(amount)::text FROM expenses
-                          WHERE user_id = $1 AND kind = 'income'
-                            AND occurred_at >= date_trunc('day', now()) - ($2::int - 1) * interval '1 day'), '0') AS income,
-               COALESCE((SELECT count(*)::text FROM expenses
-                          WHERE user_id = $1 AND kind = 'expense'
-                            AND occurred_at >= date_trunc('day', now()) - ($2::int - 1) * interval '1 day'), '0') AS count,
-               COALESCE((SELECT AVG(spent)::text FROM daily WHERE spent IS NOT NULL), '0') AS avg_day,
-               (SELECT day FROM daily WHERE spent IS NOT NULL ORDER BY spent DESC LIMIT 1) AS peak_day,
-               COALESCE((SELECT MAX(spent)::text FROM daily), '0') AS peak`,
+               COALESCE((SELECT SUM(amount) FROM win WHERE kind = 'expense'), 0)::text AS total,
+               COALESCE((SELECT SUM(amount) FROM win WHERE kind = 'income'),  0)::text AS income,
+               COALESCE((SELECT count(*)  FROM win WHERE kind = 'expense'),   0)::text AS "count",
+               (SELECT bucket_day FROM daily WHERE spent IS NOT NULL
+                  ORDER BY spent DESC LIMIT 1) AS peak_day,
+               COALESCE((SELECT MAX(spent) FROM daily), 0)::text AS peak`,
             [user.id, days],
           ),
         ]);
@@ -115,7 +114,11 @@ export const Route = createFileRoute("/api/timeline")({
           total,
           income: Number(totals?.income ?? 0),
           count: Number(totals?.count ?? 0),
-          avgPerDay: Number(totals?.avg_day ?? 0),
+          // Honest average: divide by the window length, not just active days.
+          // AVG(spent) would report ₹2,590/day for a month where you spent
+          // ₹2,590 on exactly one day — misleading. What the user actually
+          // wants is "if this month kept up, that's ₹X/day."
+          avgPerDay: days > 0 ? Math.round((total / days) * 100) / 100 : 0,
           peakAmount: Number(totals?.peak ?? 0),
           peakDay: totals?.peak_day ? new Date(totals.peak_day).toISOString() : null,
           buckets: buckets.map((b) => ({
