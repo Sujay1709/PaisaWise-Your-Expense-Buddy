@@ -22,6 +22,7 @@ import { Route as ApiLedgerRouteImport } from './routes/api/ledger'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
 import { Route as ApiReceiptRouteImport } from './routes/api/receipt'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
+import { Route as ApiTimelineRouteImport } from './routes/api/timeline'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
@@ -93,6 +94,11 @@ const ApiStatsRoute = ApiStatsRouteImport.update({
   path: '/api/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTimelineRoute = ApiTimelineRouteImport.update({
+  id: '/api/timeline',
+  path: '/api/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   id: '/api/auth/login',
   path: '/api/auth/login',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/api/profile': typeof ApiProfileRoute
   '/api/receipt': typeof ApiReceiptRoute
   '/api/stats': typeof ApiStatsRoute
+  '/api/timeline': typeof ApiTimelineRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/api/profile': typeof ApiProfileRoute
   '/api/receipt': typeof ApiReceiptRoute
   '/api/stats': typeof ApiStatsRoute
+  '/api/timeline': typeof ApiTimelineRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/api/profile': typeof ApiProfileRoute
   '/api/receipt': typeof ApiReceiptRoute
   '/api/stats': typeof ApiStatsRoute
+  '/api/timeline': typeof ApiTimelineRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/receipt'
     | '/api/stats'
+    | '/api/timeline'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/receipt'
     | '/api/stats'
+    | '/api/timeline'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/receipt'
     | '/api/stats'
+    | '/api/timeline'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReceiptRoute: typeof ApiReceiptRoute
   ApiStatsRoute: typeof ApiStatsRoute
+  ApiTimelineRoute: typeof ApiTimelineRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/timeline': {
+      id: '/api/timeline'
+      path: '/api/timeline'
+      fullPath: '/api/timeline'
+      preLoaderRoute: typeof ApiTimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/login': {
       id: '/api/auth/login'
       path: '/api/auth/login'
@@ -420,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProfileRoute: ApiProfileRoute,
   ApiReceiptRoute: ApiReceiptRoute,
   ApiStatsRoute: ApiStatsRoute,
+  ApiTimelineRoute: ApiTimelineRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,

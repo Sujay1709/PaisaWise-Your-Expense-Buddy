@@ -28,6 +28,7 @@ import type { Stats } from "@/lib/api";
 import { ExpenseHistory } from "@/components/paisawise/expense-history";
 import { UsageMeter } from "@/components/paisawise/usage-meter";
 import { AddExpenseForm } from "@/components/paisawise/add-expense-form";
+import { Timeline } from "@/components/paisawise/timeline";
 
 /** Category emoji lookup that tolerates unknown categories from the server. */
 function emojiFor(category: string): string {
@@ -244,6 +245,9 @@ export function SpendDashboard({
           ))}
         </div>
       )}
+
+      {/* Timeline — day/5day/week/month toggle */}
+      <Timeline refreshKey={usageKey} />
 
       {/* By category — list, then both charts together */}
       {stats.byCategory.length === 0 ? (

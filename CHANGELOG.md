@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.5.0] — 2026-07-28 — Timeline insights
+
+### Added
+- **Timeline widget** on the dashboard with a day / 5-day / week / month toggle.
+  Three summary numbers (total spent, per-day average or entry count, peak
+  day), a filled area chart of daily spend, and the top four categories for the
+  selected range.
+- **`GET /api/timeline?range=day|5day|week|month`** — aggregated in SQL with
+  `generate_series` so days with no spend appear as zero bars rather than
+  disappearing. A missing bar reads as "no data" when it actually means "spent
+  nothing", and that misread compounds when the user is trying to spot patterns.
+- Income deliberately excluded from spend buckets, matching the rest of the app.
+
+### Scale
+Response size is bounded by `days` (1, 5, 7 or 30), not by expense volume. A
+user with 5 million expenses gets the same payload as one with 5.
+
+### Verified
+10 SQL assertions against a real Postgres engine: exact bucket count for every
+range, zero-fill for empty days, same-day summation, exclusion of expenses
+outside the window, and separation of expense from income totals.
+
 ## [3.4.0] — 2026-07-28 — Accounts, budgets, custom categories, recurring, PWA
 
 Feature concepts studied from the Paisa Flutter expense manager
