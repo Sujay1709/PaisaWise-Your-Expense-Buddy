@@ -1,11 +1,11 @@
-# Commit and redeploy — v3.5.0
+# Commit and redeploy — v3.5.1
 
-Verified locally: **0 lint errors, typecheck clean, build succeeds, all 4
-timeline ranges register and auth-gate correctly, 10 SQL assertions pass on a
-real Postgres engine.**
+This bundles the Timeline feature (v3.5.0, if you haven't pushed it yet) with
+a fix for the bleeding toggle and the misleading "per day" number you
+screenshotted. Nothing has been pushed from any of my previous turns —
+that only happens when you run these commands yourself.
 
-I cannot run `git` or trigger the deploy from here — the sandbox blocks `.git`
-writes and has no access to your accounts. Run these on your Mac.
+Verified locally: **0 lint errors, typecheck clean, build succeeds.**
 
 ---
 
@@ -14,70 +14,48 @@ writes and has no access to your accounts. Run these on your Mac.
 ```sh
 cd /Users/sujaygopal/paisa-savvy-student-main
 
-# Test artifacts — all gitignored except sslcheck.mjs (still tracked from earlier)
+# Clean up local test artifacts before committing
 git rm --cached sslcheck.mjs 2>/dev/null
-rm -f sslcheck.mjs sqltest*.mjs iptest.mjs t5.mjs t6.mjs
-rm -rf dist dist2 dist3 dist4 dist5 dist6 dist7 dist8 dist9 dist10 dist11 dist12
+rm -f sslcheck.mjs sqltest*.mjs iptest.mjs t5.mjs t6.mjs t7.mjs
+rm -rf dist dist2 dist3 dist4 dist5 dist6 dist7 dist8 dist9 dist10 dist11 dist12 dist13 dist14
 
 git add -A
-git commit -m "Add timeline insights (day/5-day/week/month)
+git commit -m "Fix timeline toggle bleeding and per-day average
 
-- GET /api/timeline?range=... returns SQL-aggregated daily buckets plus
-  summary numbers (total spent, per-day average, peak day) and the top
-  categories for the window
-- generate_series zero-fills empty days so a missing bar reads as 'no
-  data' rather than 'no spend'
-- Income excluded from spend buckets, matching /api/stats
-- Timeline UI shows the toggle, three stat tiles and a filled area chart
+- Range labels changed from variable-width text to fixed 2-char tokens
+  (1D/5D/1W/1M) with w-9 + whitespace-nowrap + shrink-0, so the toggle
+  row can never wrap and push into the Peak day tile below it
+- avgPerDay now computed as total / days instead of AVG(spent) over
+  active days only — fixes Spent/Per day/Peak day showing identical
+  values for a month with a single expense
+- Renamed CTE alias day -> bucket_day (bare 'day' alias caused a
+  Postgres syntax error), quoted AS \"count\"
 
-Response size is bounded by days (1/5/7/30), not by expense volume, so
-scale properties from earlier versions still hold.
-
-Verified: 10 SQL assertions on real Postgres, 0 lint errors, clean
-typecheck, successful build, all 4 range routes auth-gate correctly."
+Verified: typecheck clean, 0 lint errors, build succeeds, PGlite check
+confirms correct per-day averages across all 4 ranges."
 
 git push origin main
 ```
 
-Render auto-deploys on push. Check the **Actions** tab for a green CI run and
-the Render dashboard for the deploy log.
+Render auto-deploys on push. Watch the Render dashboard's deploy log, and
+after it says "Your service is live," **hard-refresh** the page
+(Cmd+Shift+R) — otherwise your browser may serve the old cached JS bundle
+and it'll look unfixed even though the new build is live.
 
 ---
 
-## 2. What to watch for in the deploy log
+## 2. Smoke test after deploy
 
-```
-==> Using Node.js version 22.x
-added 695 packages
-✓ built in ...
-[db] schema ready
-[server] PaisaWise listening on http://0.0.0.0:10000
-==> Your service is live 🎉
-```
-
-The timeline is a read-only feature — **no new tables, no migrations**. It
-queries the existing `expenses` table with `generate_series`. If v3.4.0
-deployed cleanly, this one will too.
-
----
-
-## 3. Smoke test
-
-- [ ] Open the dashboard — the Timeline widget appears above "By category"
-- [ ] Toggle Today / 5 days / Week / Month
-      - Bar count matches: 1 / 5 / 7 / 30
-      - Days with no spend show as flat sections, not gaps
-      - "Peak day" highlights the biggest single day in that window
-- [ ] Log a `500 zomato` right now → Timeline updates on next tab switch
-- [ ] "Per day" average matches your intuition (total ÷ days)
-- [ ] Log an `earned 5000` income → total does NOT include it
-- [ ] On mobile in the installed PWA → the toggle still works and the chart
-      remains readable
+- [ ] Dashboard → Timeline widget → toggle shows `1D 5D 1W 1M`, all on one
+      line, no overlap with the stat tiles below
+- [ ] Switch to Month with only one expense logged → "Per day" is now
+      total ÷ 30, not equal to "Spent"
+- [ ] Resize the browser narrower (or check on mobile) → toggle still
+      doesn't wrap
 
 ---
 
 ## What's still not built
 
-Same as v3.4.0: accounts, budgets, custom categories and recurring rules have
-working, tested APIs (`/api/ledger`) but **no UI screens yet**. Next piece of
-work if you want it.
+Same as before: accounts, budgets, custom categories and recurring rules
+have working, tested APIs (`/api/ledger`) but no UI screens yet.

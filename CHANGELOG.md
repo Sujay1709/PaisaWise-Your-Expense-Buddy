@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.5.1] — 2026-07-29 — Timeline layout and average fix
+
+### Fixed
+- **Timeline toggle bleeding into the Peak day tile.** Range labels were
+  variable-width text ("Today", "5 days", "Week", "Month"); "5 days" wrapped
+  onto two lines in the sidebar's narrow width, which grew the toggle row and
+  pushed it down into the stat tiles below. Replaced with fixed 2-character
+  tokens (`1D` / `5D` / `1W` / `1M`), `w-9` fixed button width, and
+  `whitespace-nowrap` + `shrink-0` on the toggle row so it can never wrap.
+  `min-w-0` + `truncate` added to the "Timeline" heading so it yields space
+  to the toggle instead of crowding it.
+- **Misleading "per day" figure.** Spent, Per day, and Peak day were showing
+  an identical value for a month with a single expense (`AVG(spent)` was
+  averaging only days that had spend, not the full window). `avgPerDay` is
+  now computed as `total / days`, matching the plain reading of "per day."
+- Renamed a CTE column alias from `day` to `bucket_day` (a bare `day` alias
+  caused a Postgres syntax error once the query was restructured) and
+  defensively quoted `AS "count"`.
+
+Verified: typecheck clean, 0 lint errors, build succeeds, PGlite math check
+confirms 1D/5D/7D/30D averages for a single ₹2,590 expense (₹2590 / ₹518 /
+₹370 / ₹86.33).
+
 ## [3.5.0] — 2026-07-28 — Timeline insights
 
 ### Added
